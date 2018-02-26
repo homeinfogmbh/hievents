@@ -1,0 +1,11 @@
+[Unit]
+Description=HOMEINFO News Service
+PartOf=wsgi-services.target
+
+[Service]
+User=hinews
+Group=hinews
+ExecStart=/usr/local/bin/hinewsd
+
+[Install]
+WantedBy=wsgi-services.target

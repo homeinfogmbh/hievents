@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema  xmlns="http://xml.homeinfo.de/schema/hinews"
+            xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0"
+            targetNamespace="http://xml.homeinfo.de/schema/hinews">
+
+    <xs:element name="news" type="News"/>
+
+
+    <xs:complexType name="News">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                A list of articles.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="article" type="Article" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+
+    <xs:complexType name="Article">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                A news article.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="text" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en">
+                        The article text.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="source" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en">
+                        The article's source.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="tag" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en">
+                        The article's tags.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="image" type="Image" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en">
+                        The article's images.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:integer" use="required">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    The article's ID.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="title" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    The article's title.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="subtitle" type="xs:string">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    The article's subtitle.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="created" type="xs:dateTime" use="required">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    The article's creation time.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="active_from" type="xs:date">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    Date from which on the article is active.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="active_until" type="xs:date">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    Date from which on the article is no longer active.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+
+    <xs:complexType name="Image">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">
+                An article's image.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="source" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en">
+                        The image's source.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:integer" use="required">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    The image's ID.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="uploaded" type="xs:dateTime" use="required">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    The image's upload date and time.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="mimetype" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    The image's MIME type.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+</xs:schema>
