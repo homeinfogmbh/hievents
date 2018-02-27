@@ -11,7 +11,7 @@ from peewee import PrimaryKeyField, ForeignKeyField, DateField, TimeField, \
 from filedb import mimetype, FileProperty
 from functoolsplus import datetimenow
 from hinews.exceptions import InvalidCustomer, InvalidTag, InvalidElements
-from hinews.orm import Proxy
+from hinews.proxy import Proxy
 from hinews.watermark import watermark
 from his.orm import Account
 from homeinfo.crm import Address, Customer
