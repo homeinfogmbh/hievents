@@ -233,6 +233,6 @@ ROUTES = (
     ('POST', '/event/<int:ident>/tags', post_tag, 'post_event_tag'),
     # Sub-events.
     ('GET', '/event/<int:ident>/sub_event', list_sub_events,
-     'list_sub_events'),
+     'list_event_sub_events'),
     ('POST', '/event/<int:ident>/sub_event', post_sub_event,
-     'post_sub_event'))
+     'post_event_sub_event'))
