@@ -338,6 +338,14 @@ class SubEvent(EventsModel):
     timestamp = DateTimeField()
     caption = CharField(255, null=True)
 
+    @classmethod
+    def add(cls, event, timstamp, caption=None):
+        """Adds a new sub-event."""
+        sub_event = cls()
+        sub_event.event = event
+        sub_event.caption = caption
+        return sub_event
+
 
 class Price(EventsModel):
     """Price of an event."""
@@ -346,6 +354,16 @@ class Price(EventsModel):
     value = DecimalField(6, 2)
     currency = EnumField(Currency, default=Currency.EUR)
     caption = CharField(255, null=True)
+
+    @classmethod
+    def add(cls, event, value, currency=Currency.EUR, caption=None):
+        """Adds a new price."""
+        price = cls()
+        price.event = event
+        price.value = value
+        price.currency = currency
+        price.caption = caption
+        return price
 
 
 class EventCustomer(EventsModel):
@@ -412,9 +430,9 @@ class EventProxy(Proxy):
         """Yields records related to the respective event."""
         yield from self.model.select().where(self.model.event == self.target)
 
-    def add(self, rel_model):
+    def add(self, *args, **kwargs):
         """Adds the respective related model."""
-        record = self.model.add(self.target, rel_model)
+        record = self.model.add(self.target, *args, **kwargs)
         record.save()
         return record
 
@@ -451,12 +469,6 @@ class EventImageProxy(EventProxy):
     def __init__(self, target):
         """Sets the model and target."""
         super().__init__(Image, target)
-
-    def add(self, data, metadata, account):
-        """Adds an image to the respective event."""
-        event_image = self.model.add(self.target, data, metadata, account)
-        event_image.save()
-        return event_image
 
 
 class EventTagProxy(EventProxy):
