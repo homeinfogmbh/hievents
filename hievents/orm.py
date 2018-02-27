@@ -412,6 +412,22 @@ class EventProxy(Proxy):
         """Yields records related to the respective event."""
         yield from self.model.select().where(self.model.event == self.target)
 
+    def add(self, rel_model):
+        """Adds the respective related model."""
+        record = self.model.add(self.target, rel_model)
+        record.save()
+        return record
+
+    def delete(self, ident):
+        """Deletes the respective instance."""
+        try:
+            record = self.model.get(
+                (self.model.event == self.target) & (self.model.id == ident))
+        except self.model.DoesNotExist:
+            return False
+
+        return record.delete_instance()
+
 
 class EventEditorProxy(EventProxy):
     """Proxies event editors."""
@@ -420,11 +436,13 @@ class EventEditorProxy(EventProxy):
         """Sets model and target."""
         super().__init__(Editor, target)
 
-    def add(self, author):
-        """Adds the respective author."""
-        event_editor = self.model.add(self.target, author)
-        event_editor.save()
-        return event_editor
+
+class SubEventProxy(EventProxy):
+    """Yields sub-events of the respective event."""
+
+    def __init__(self, target):
+        """Sets model and target."""
+        super().__init__(SubEvent, target)
 
 
 class EventImageProxy(EventProxy):
@@ -440,16 +458,6 @@ class EventImageProxy(EventProxy):
         article_image.save()
         return article_image
 
-    def delete(self, ident):
-        """Removes the respective article image."""
-        try:
-            article_image = self.model.get(
-                (self.model.article == self.target) & (self.model.id == ident))
-        except self.model.DoesNotExist:
-            return False
-
-        return article_image.delete_instance()
-
 
 class ArticleTagProxy(EventProxy):
     """Proxies tags of articles."""
@@ -457,12 +465,6 @@ class ArticleTagProxy(EventProxy):
     def __init__(self, target):
         """Sets the model and target."""
         super().__init__(Tag, target)
-
-    def add(self, tag):
-        """Adds the respective tag."""
-        article_tag = self.model.add(self.target, tag)
-        article_tag.save()
-        return article_tag
 
     def delete(self, tag_or_id):
         """Deletes the respective tag."""
@@ -500,12 +502,6 @@ class EventCustomerProxy(EventProxy):
                 return True
 
         return not customers
-
-    def add(self, customer):
-        """Adds a customer to the respective article."""
-        article_customer = self.model.add(self.target, customer)
-        article_customer.save()
-        return article_customer
 
     def delete(self, customer):
         """Deletes the respective customer from the article."""
