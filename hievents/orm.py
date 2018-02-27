@@ -164,15 +164,29 @@ class Event(EventsModel):
         if invalid_customers:
             raise InvalidElements(invalid_customers)
 
-    def to_dict(self):
+    @property
+    def sub_events(self):
+        """Reutns the respective sub events proxy."""
+        return SubEvent.select().where(SubEvent.event == self)
+
+    @property
+    def prices(self):
+        """Returns the respective prices proxy."""
+        return Price.select().where(Price.event == self)
+
+    def to_dict(self, *args, **kwargs):
         """Returns a JSON-ish dictionary."""
-        dictionary = super().to_dict()
+        dictionary = super().to_dict(*args, **kwargs)
         dictionary.update({
             'author': self.author.info,
+            'address': self.address.to_dict(),
             'editors': [editor.to_dict() for editor in self.editors],
             'images': [image.to_dict() for image in self.images],
             'tags': [tag.to_dict() for tag in self.tags],
-            'customers': [customer.to_dict() for customer in self.customers]})
+            'customers': [customer.to_dict() for customer in self.customers],
+            'sub_events': [
+                sub_event.to_dict() for sub_event in self.sub_events],
+            'prices': [price.to_dict() for price in self.prices]})
         return dictionary
 
     def delete_instance(self, recursive=False, delete_nullable=False):
@@ -334,6 +348,9 @@ class Tag(EventsModel):
 class SubEvent(EventsModel):
     """A sub-event."""
 
+    class Meta:
+        table_name = 'sub_event'
+
     event = ForeignKeyField(Event, column_name='event', on_delete='CASCADE')
     timestamp = DateTimeField()
     caption = CharField(255, null=True)
@@ -453,14 +470,6 @@ class EventEditorProxy(EventProxy):
     def __init__(self, target):
         """Sets model and target."""
         super().__init__(Editor, target)
-
-
-class SubEventProxy(EventProxy):
-    """Yields sub-events of the respective event."""
-
-    def __init__(self, target):
-        """Sets model and target."""
-        super().__init__(SubEvent, target)
 
 
 class EventImageProxy(EventProxy):
