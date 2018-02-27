@@ -1,6 +1,6 @@
 """Endpoint functions for event management."""
 
-from hinews.Exceptions import InvalidElements
+from hinews.exceptions import InvalidElements
 from his import ACCOUNT, DATA, authenticated, authorized
 from his.messages import MissingData, InvalidData
 from peeweeplus import FieldValueError, FieldNotNullable
