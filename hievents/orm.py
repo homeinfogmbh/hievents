@@ -10,8 +10,7 @@ from peewee import PrimaryKeyField, ForeignKeyField, DateField, TimeField, \
 
 from filedb import mimetype, FileProperty
 from functoolsplus import datetimenow
-from hinews.exceptions import InvalidCustomer, InvalidTag, InvalidElements
-from hinews.proxy import Proxy
+from hinews.exceptions import InvalidCustomer, InvalidTag
 from hinews.watermark import watermark
 from his.orm import Account
 from homeinfo.crm import Address, Customer
@@ -111,67 +110,31 @@ class Event(EventsModel):
     @property
     def editors(self):
         """Yields event editors."""
-        return EventEditorProxy(self)
+        return Editor.select().where(Editor.event == self)
 
     @property
     def images(self):
         """Yields images of this event."""
-        return EventImageProxy(self)
+        return Image.select().where(Image.event == self)
 
     @property
     def tags(self):
         """Yields tags of this event."""
-        return EventTagProxy(self)
-
-    @tags.setter
-    def tags(self, tags):
-        """Sets the respective tags."""
-        for tag in self.tags:
-            tag.delete_instance()
-
-        invalid_tags = []
-
-        for tag in tags:
-            try:
-                self.tags.add(tag)
-            except InvalidTag:
-                invalid_tags.append(tag)
-
-        if invalid_tags:
-            raise InvalidElements(invalid_tags)
+        return Tag.select().where(Tag.event == self)
 
     @property
     def customers(self):
         """Yields customers of this event."""
-        return EventCustomerProxy(self)
-
-    @customers.setter
-    def customers(self, cids):
-        """Sets the respective customers."""
-        for customer in self.customers:
-            customer.delete_instance()
-
-        invalid_customers = []
-
-        for cid in cids:
-            try:
-                customer = Customer.get(Customer.id == cid)
-            except (ValueError, Customer.DoesNotExist):
-                invalid_customers.append(cid)
-            else:
-                self.customers.add(customer)
-
-        if invalid_customers:
-            raise InvalidElements(invalid_customers)
+        return EventCustomer.select().where(EventCustomer.event == self)
 
     @property
     def sub_events(self):
-        """Reutns the respective sub events proxy."""
+        """Yield the respective sub-events."""
         return SubEvent.select().where(SubEvent.event == self)
 
     @property
     def prices(self):
-        """Returns the respective prices proxy."""
+        """Yield the respective prices."""
         return Price.select().where(Price.event == self)
 
     def to_dict(self, *args, **kwargs):
@@ -281,42 +244,6 @@ class Image(EventsModel):
             recursive=recursive, delete_nullable=delete_nullable)
 
 
-class TagList(EventsModel):
-    """Available tags."""
-
-    class Meta:
-        """Sets the table name."""
-        table_name = 'tag_list'
-
-    tag = CharField(255)
-
-    @classmethod
-    def add(cls, tag):
-        """Adds the respective tag."""
-        try:
-            return cls.get(cls.tag == tag)
-        except cls.DoesNotExist:
-            tag_ = cls()
-            tag_.tag = tag
-            return tag_
-
-
-class CustomerList(EventsModel):
-    """Csutomers enabled for gettings events."""
-
-    class Meta:
-        """Sets the table name."""
-        table_name = 'customer_list'
-
-    customer = ForeignKeyField(
-        Customer, column_name='customer', on_delete='CASCADE',
-        on_update='CASCADE')
-
-    def to_dict(self):
-        """Returns the respective customer's dict."""
-        return self.customer.to_dict(cascade=True)
-
-
 class Tag(EventsModel):
     """Tags for events."""
 
@@ -328,7 +255,7 @@ class Tag(EventsModel):
     tag = CharField(255)
 
     @classmethod
-    def add(cls, event, tag, validate=True):
+    def from_text(cls, event, tag, validate=True):
         """Adds a new tag to the event."""
         if validate:
             try:
@@ -349,6 +276,7 @@ class SubEvent(EventsModel):
     """A sub-event."""
 
     class Meta:
+        """Set table name."""
         table_name = 'sub_event'
 
     event = ForeignKeyField(Event, column_name='event', on_delete='CASCADE')
@@ -356,10 +284,11 @@ class SubEvent(EventsModel):
     caption = CharField(255, null=True)
 
     @classmethod
-    def add(cls, event, timstamp, caption=None):
+    def add(cls, event, timestamp, caption=None):
         """Adds a new sub-event."""
         sub_event = cls()
         sub_event.event = event
+        sub_event.timestamp = timestamp
         sub_event.caption = caption
         return sub_event
 
@@ -416,6 +345,42 @@ class EventCustomer(EventsModel):
         return {'id': self.id, 'customer': self.customer.id}
 
 
+class CustomerList(EventsModel):
+    """Csutomers enabled for gettings events."""
+
+    class Meta:
+        """Sets the table name."""
+        table_name = 'customer_list'
+
+    customer = ForeignKeyField(
+        Customer, column_name='customer', on_delete='CASCADE',
+        on_update='CASCADE')
+
+    def to_dict(self):
+        """Returns the respective customer's dict."""
+        return self.customer.to_dict(cascade=True)
+
+
+class TagList(EventsModel):
+    """Available tags."""
+
+    class Meta:
+        """Sets the table name."""
+        table_name = 'tag_list'
+
+    tag = CharField(255)
+
+    @classmethod
+    def add(cls, tag):
+        """Adds the respective tag."""
+        try:
+            return cls.get(cls.tag == tag)
+        except cls.DoesNotExist:
+            tag_ = cls()
+            tag_.tag = tag
+            return tag_
+
+
 class AccessToken(EventsModel):
     """Customers' access tokens."""
 
@@ -438,102 +403,6 @@ class AccessToken(EventsModel):
             access_token.customer = customer
             access_token.token = str(uuid4())
             return access_token
-
-
-class EventProxy(Proxy):
-    """An event-related proxy."""
-
-    def __iter__(self):
-        """Yields records related to the respective event."""
-        yield from self.model.select().where(self.model.event == self.target)
-
-    def add(self, *args, **kwargs):
-        """Adds the respective related model."""
-        record = self.model.add(self.target, *args, **kwargs)
-        record.save()
-        return record
-
-    def delete(self, ident):
-        """Deletes the respective instance."""
-        try:
-            record = self.model.get(
-                (self.model.event == self.target) & (self.model.id == ident))
-        except self.model.DoesNotExist:
-            return False
-
-        return record.delete_instance()
-
-
-class EventEditorProxy(EventProxy):
-    """Proxies event editors."""
-
-    def __init__(self, target):
-        """Sets model and target."""
-        super().__init__(Editor, target)
-
-
-class EventImageProxy(EventProxy):
-    """Proxies images of events."""
-
-    def __init__(self, target):
-        """Sets the model and target."""
-        super().__init__(Image, target)
-
-
-class EventTagProxy(EventProxy):
-    """Proxies tags of events."""
-
-    def __init__(self, target):
-        """Sets the model and target."""
-        super().__init__(Tag, target)
-
-    def delete(self, tag_or_id):
-        """Deletes the respective tag."""
-        try:
-            ident = int(tag_or_id)
-        except ValueError:
-            selection = self.model.tag == tag_or_id
-        else:
-            selection = self.model.id == ident
-
-        try:
-            event_tag = self.model.get(
-                (self.model.event == self.target) & selection)
-        except self.model.DoesNotExist:
-            return False
-
-        return event_tag.delete_instance()
-
-
-class EventCustomerProxy(EventProxy):
-    """Proxies customers of the respective events."""
-
-    def __init__(self, target):
-        """Sets the model and target."""
-        super().__init__(EventCustomer, target)
-
-    def __contains__(self, customer):
-        """Determines whether the respective
-        customer may use the respective event.
-        """
-        customers = 0
-
-        for customers, event_customer in enumerate(self, start=1):
-            if event_customer.customer == customer:
-                return True
-
-        return not customers
-
-    def delete(self, customer):
-        """Deletes the respective customer from the event."""
-        try:
-            event_customer = self.model.get(
-                (self.model.event == self.target)
-                & (self.model.customer == customer))
-        except self.model.DoesNotExist:
-            return False
-
-        return event_customer.delete_instance()
 
 
 MODELS = [

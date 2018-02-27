@@ -1,6 +1,11 @@
 """Endpoint functions for event management."""
 
-from hinews.exceptions import InvalidElements
+from hinews.exceptions import InvalidCustomer, InvalidTag
+from hinews.messages.customer import NoSuchCustomer, CustomerAdded, \
+    CustomerDeleted
+from hinews.messages.image import NoImageProvided, NoMetaDataProvided, \
+    ImageAdded
+from hinews.messages.tag import NoSuchTag, TagAdded, TagDeleted
 from his import ACCOUNT, DATA, authenticated, authorized
 from his.messages import MissingData, InvalidData
 from peeweeplus import FieldValueError, FieldNotNullable
@@ -8,12 +13,12 @@ from wsgilib import JSON
 
 from hievents.messages.event import NoSuchEvent, EventCreated, EventDeleted,\
     EventPatched
-from hievents.orm import Event
+from hievents.orm import Event, Image, CustomerList, EventCustomer, Tag
 
-__all__ = ['get_event', 'ROUTES']
+__all__ = ['_get_event', 'ROUTES']
 
 
-def get_event(ident):
+def _get_event(ident):
     """Returns the respective event."""
 
     try:
@@ -22,30 +27,51 @@ def get_event(ident):
         raise NoSuchEvent()
 
 
-def set_tags(event, dictionary):
-    """Sets the respective tags of the event iff specified."""
+def _get_images(event):
+    """Yields the event's images."""
+
+    return Image.select().where(Image.event == event)
+
+
+def _get_customer(cid):
+    """Returns the respective customer."""
 
     try:
-        event.tags = dictionary['tags']
-    except KeyError:
-        return []
-    except InvalidElements as invalid_elements:
-        return list(invalid_elements)
-
-    return []
+        return CustomerList.get(CustomerList.customer == cid).customer
+    except CustomerList.DoesNotExist:
+        raise NoSuchCustomer()
 
 
-def set_customers(event, dictionary):
-    """Sets the respective customers of the event iff specified."""
+def _get_event_customers(event):
+    """Yields the event's customers."""
+
+    return EventCustomer.select().where(EventCustomer.event == event)
+
+
+def _get_event_customer(event, customer):
+    """Returns the respective event customer."""
 
     try:
-        event.customers = dictionary['customers']
-    except KeyError:
-        return []
-    except InvalidElements as invalid_elements:
-        return list(invalid_elements)
+        return EventCustomer.get(
+            (EventCustomer.event == event)
+            & (EventCustomer.customer == customer))
+    except EventCustomer.DoesNotExist:
+        raise NoSuchCustomer()
 
-    return []
+
+def _get_tags(event):
+    """Yields tags of the respective event."""
+
+    return Tag.select().where(Tag.event == event)
+
+
+def _get_tag(event, tag):
+    """Returns the respective tag record."""
+
+    try:
+        return Tag.get((Tag.event == event) & (Tag.tag == tag))
+    except Tag.DoesNotExist:
+        raise NoSuchTag()
 
 
 @authenticated
@@ -61,7 +87,7 @@ def list_():
 def get(ident):
     """Returns a specific event."""
 
-    return JSON(get_event(ident).to_dict())
+    return JSON(_get_event(ident).to_dict())
 
 
 @authenticated
@@ -72,20 +98,14 @@ def post():
     dictionary = DATA.json
 
     try:
-        event = Event.from_dict(
-            ACCOUNT, dictionary, allow=('tags', 'customers'))
+        event = Event.from_dict(ACCOUNT, dictionary)
     except FieldNotNullable as field_not_nullable:
         raise MissingData(**field_not_nullable.to_dict())
     except FieldValueError as field_value_error:
         raise InvalidData(**field_value_error.to_dict())
 
     event.save()
-    invalid_tags = set_tags(event, dictionary)
-    invalid_customers = set_customers(event, dictionary)
-
-    return EventCreated(
-        id=event.id, invalid_tags=invalid_tags,
-        invalid_customers=invalid_customers)
+    return EventCreated(id=event.id)
 
 
 @authenticated
@@ -93,7 +113,7 @@ def post():
 def delete(ident):
     """Adds a new event."""
 
-    get_event(ident).delete_instance()
+    _get_event(ident).delete_instance()
     return EventDeleted()
 
 
@@ -102,20 +122,137 @@ def delete(ident):
 def patch(ident):
     """Adds a new event."""
 
-    event = get_event(ident)
-    dictionary = DATA.json
-    event.patch(dictionary, allow=('tags', 'customers'))
+    event = _get_event(ident)
+    event.patch(DATA.json)
     event.save()
     event.editors.add(ACCOUNT)
-    invalid_tags = set_tags(event, dictionary)
-    invalid_customers = set_customers(event, dictionary)
-    return EventPatched(
-        invalid_tags=invalid_tags, invalid_customers=invalid_customers)
+    return EventPatched()
+
+
+@authenticated
+@authorized('hievents')
+def list_images(ident):
+    """Lists all images of the respective event."""
+
+    return JSON([image.to_dict() for image in _get_images(_get_event(ident))])
+
+
+@authenticated
+@authorized('hievents')
+def post_image(ident):
+    """Adds a new image to the respective event."""
+
+    files = DATA.files
+
+    try:
+        image = files['image']
+    except KeyError:
+        raise NoImageProvided()
+
+    try:
+        metadata = files['metadata']
+    except KeyError:
+        raise NoMetaDataProvided()
+
+    try:
+        image = _get_event(ident).images.add(
+            image.bytes, metadata.json, ACCOUNT)
+    except KeyError as key_error:
+        raise MissingData(key=key_error.args[0])
+    except ValueError as value_error:
+        raise InvalidData(hint=value_error.args[0])
+
+    return ImageAdded(id=image.id)
+
+
+@authenticated
+@authorized('hievents')
+def list_customers(ident):
+    """Lists customers of the respective event."""
+
+    return JSON([
+        event_customer.to_dict() for event_customer in _get_event_customers(
+            _get_event(ident))])
+
+
+@authenticated
+@authorized('hievents')
+def post_customer(ident):
+    """Adds a customer to the respective event."""
+
+    event = _get_event(ident)
+
+    try:
+        customer = EventCustomer.from_dict(event, DATA.json)
+    except InvalidCustomer:
+        raise NoSuchCustomer()
+
+    customer.save()
+    return CustomerAdded()
+
+
+@authenticated
+@authorized('hievents')
+def delete_customer(event_id, customer_id):
+    """Deletes the respective customer from the event."""
+
+    _get_event_customer(
+        _get_event(event_id), _get_customer(customer_id)).delete_instance()
+    return CustomerDeleted()
+
+
+@authenticated
+@authorized('hievents')
+def list_tags(ident):
+    """Lists tags of the respective event."""
+
+    return JSON([tag.to_dict() for tag in _get_tags(_get_event(ident))])
+
+
+@authenticated
+@authorized('hievents')
+def post_tag(ident):
+    """Adds a tag to the respective event."""
+
+    event = _get_event(ident)
+
+    try:
+        tag = Tag.from_text(event, DATA.text)
+    except InvalidTag:
+        return NoSuchTag()
+
+    tag.save()
+    return TagAdded()
+
+
+@authenticated
+@authorized('hievents')
+def delete_tag(event_id, tag):
+    """Deletes the respective tag."""
+
+    _get_tag(_get_event(event_id), tag).delete_instance()
+    return TagDeleted()
 
 
 ROUTES = (
+    # Events.
     ('GET', '/event', list_, 'list_events'),
-    ('GET', '/event/<int:ident>', get, 'get_event'),
+    ('GET', '/event/<int:ident>', get, '_get_event'),
     ('POST', '/event', post, 'post_event'),
     ('DELETE', '/event/<int:ident>', delete, 'delete_event'),
-    ('PATCH', '/event/<int:ident>', patch, 'patch_event'))
+    ('PATCH', '/event/<int:ident>', patch, 'patch_event'),
+    # Event images.
+    ('GET', '/event/<int:ident>/images', list_images, 'list_event_images'),
+    ('POST', '/event/<int:ident>/images', post_image, 'post_event_image'),
+    # Event customers.
+    ('GET', '/event/<int:ident>/customers', list_customers,
+     'list_event_customers'),
+    ('POST', '/event/<int:ident>/customers', post_customer,
+     'post_event_customer'),
+    ('DELETE', '/event/<int:event_id>/customers/<customer_id>',
+     delete_customer, 'delete_event_customer'),
+    # Tags.
+    ('GET', '/event/<int:ident>/tags', list_tags, 'list_event_tags'),
+    ('POST', '/event/<int:ident>/tags', post_tag, 'post_event_tag'),
+    ('DELETE', '/event/<int:event_id>/tags/<tag>', delete_tag,
+     'delete_event_tag'))
