@@ -1,8 +1,8 @@
 #! /usr/bin/env python3
-"""HOMEINFO news daemon."""
+"""HOMEINFO events daemon."""
 
-from hinews.config import CONFIG
-from hinews.wsgi import APPLICATION
+from hievents.config import CONFIG
+from hievents.wsgi import APPLICATION
 
 
 if __name__ == '__main__':

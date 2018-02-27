@@ -10,7 +10,8 @@ from peewee import PrimaryKeyField, ForeignKeyField, DateField, TimeField, \
 
 from filedb import mimetype, FileProperty
 from functoolsplus import datetimenow
-from hinews.orm import InvalidTag, Proxy
+from hinews.exceptions import InvalidCustomer, InvalidTag, InvalidElements
+from hinews.orm import Proxy
 from hinews.watermark import watermark
 from his.orm import Account
 from homeinfo.crm import Address, Customer
@@ -19,35 +20,23 @@ from peeweeplus import MySQLDatabase, JSONModel, EnumField
 from hievents.config import CONFIG
 
 __all__ = [
-    'InvalidTag',
-    'InvalidCustomer',
-    'InvalidElements',
     'create_tables',
+    'Event',
+    'EventEditor',
+    'EventImage',
+    'TagList',
+    'CustomerList',
+    'EventTag',
+    'SubEvent',
+    'EventPrice',
+    'EventCustomer',
+    'AccessToken',
     'MODELS']
 
 
 DATABASE = MySQLDatabase(
     CONFIG['db']['db'], host=CONFIG['db']['host'], user=CONFIG['db']['user'],
     passwd=CONFIG['db']['passwd'], closing=True)
-
-
-class InvalidCustomer(Exception):
-    """Indicates that a respective tag is not registered."""
-
-    pass
-
-
-class InvalidElements(Exception):
-    """Indicates that the respective elements are invalid."""
-
-    def __init__(self, elements):
-        """Sets the invalid elements."""
-        super().__init__(elements)
-        self.elements = elements
-
-    def __iter__(self):
-        """Yields the invalid elements."""
-        yield from self.elements
 
 
 def create_tables(fail_silently=False):
@@ -107,12 +96,12 @@ class Event(EventsModel):
     @property
     def editors(self):
         """Yields article editors."""
-        return ArticleEditorProxy(self)
+        return EventEditorProxy(self)
 
     @property
     def images(self):
         """Yields images of this article."""
-        return ArticleImageProxy(self)
+        return EventImageProxy(self)
 
     @property
     def tags(self):

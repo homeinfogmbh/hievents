@@ -4,10 +4,10 @@ from his import DATA, authenticated, authorized
 from homeinfo.crm import Customer
 from wsgilib import JSON
 
-from hinews.messages.customer import NoSuchCustomer, CustomerAdded, \
+from hievents.messages.customer import NoSuchCustomer, CustomerAdded, \
     CustomerDeleted
-from hinews.orm import InvalidCustomer, CustomerList
-from hinews.wsgi.article import get_article
+from hievents.orm import InvalidCustomer, CustomerList
+from hievents.wsgi.article import get_article
 
 __all__ = ['ROUTES']
 

@@ -1,11 +1,11 @@
 [Unit]
-Description=HOMEINFO News Service
+Description=HOMEINFO Events Service
 PartOf=wsgi-services.target
 
 [Service]
-User=hinews
-Group=hinews
-ExecStart=/usr/local/bin/hinewsd
+User=hievents
+Group=hievents
+ExecStart=/usr/local/bin/hieventsd
 
 [Install]
 WantedBy=wsgi-services.target
