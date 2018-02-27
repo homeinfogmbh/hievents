@@ -4,7 +4,7 @@ from his import DATA
 from wsgilib import JSON
 
 from hievents.messages.price import NoSuchPrice, PriceDeleted, PricePatched
-from hievents.wsgi.orm import Price
+from hievents.orm import Price
 
 __all__ = ['ROUTES']
 
