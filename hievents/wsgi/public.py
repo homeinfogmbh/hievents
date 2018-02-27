@@ -5,7 +5,7 @@ from flask import request
 
 from hinews.messages.image import NoSuchImage
 from hinews.messages.public import MissingAccessToken, InvalidAccessToken
-from wsgilib import JSON, XML, Binary
+from wsgilib import JSON, Binary
 
 from hievents.messages.event import NoSuchEvent
 from hievents.orm import event_active, Event, Image, AccessToken
