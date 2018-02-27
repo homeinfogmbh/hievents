@@ -1,8 +1,7 @@
 """Event customer controller."""
 
-from hinews.messages.customer import NoSuchCustomer, CustomerDeleted, \
-    CustomerPatched
-from his import DATA, authenticated, authorized
+from hinews.messages.customer import NoSuchCustomer, CustomerDeleted
+from his import authenticated, authorized
 from wsgilib import JSON
 
 from hievents.orm import CustomerList, EventCustomer
@@ -45,23 +44,7 @@ def delete(ident):
     return CustomerDeleted()
 
 
-@authenticated
-@authorized('hievents')
-def patch(ident):
-    """Deletes the respective customer."""
-
-    try:
-        event_customer = EventCustomer.get(EventCustomer.id == ident)
-    except EventCustomer.DoesNotExist:
-        return NoSuchCustomer()
-
-    event_customer.patch(DATA.json)
-    event_customer.save()
-    return CustomerPatched()
-
-
 ROUTES = (
     ('GET', '/customer', list_, 'list_customers'),
     ('GET', '/customer/<int:ident>', get, 'get_customer'),
-    ('DELETE', '/customer/<int:ident>', delete, 'delete_customer'),
-    ('DELETE', '/customer/<int:ident>', patch, 'patch_customer'))
+    ('DELETE', '/customer/<int:ident>', delete, 'delete_customer'))
