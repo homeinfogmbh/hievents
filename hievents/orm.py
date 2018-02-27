@@ -48,7 +48,7 @@ def create_tables(fail_silently=False):
 
 @datetimenow
 def event_active(now):
-    """Yields article active query."""
+    """Returns a peewee expression for active events."""
 
     return (
         ((Event.active_from >> None) | (Event.active_from <= now))
@@ -103,25 +103,25 @@ class Event(EventsModel):
 
     @classmethod
     def from_dict(cls, author, dictionary, **kwargs):
-        """Creates a new article from the provided dictionary."""
-        article = super().from_dict(dictionary, **kwargs)
-        article.author = author
-        return article
+        """Creates a new event from the provided dictionary."""
+        event = super().from_dict(dictionary, **kwargs)
+        event.author = author
+        return event
 
     @property
     def editors(self):
-        """Yields article editors."""
+        """Yields event editors."""
         return EventEditorProxy(self)
 
     @property
     def images(self):
-        """Yields images of this article."""
+        """Yields images of this event."""
         return EventImageProxy(self)
 
     @property
     def tags(self):
-        """Yields tags of this article."""
-        return ArticleTagProxy(self)
+        """Yields tags of this event."""
+        return EventTagProxy(self)
 
     @tags.setter
     def tags(self, tags):
@@ -142,7 +142,7 @@ class Event(EventsModel):
 
     @property
     def customers(self):
-        """Yields customers of this article."""
+        """Yields customers of this event."""
         return EventCustomerProxy(self)
 
     @customers.setter
@@ -176,7 +176,7 @@ class Event(EventsModel):
         return dictionary
 
     def delete_instance(self, recursive=False, delete_nullable=False):
-        """Deletes the article."""
+        """Deletes the event."""
         # Manually delete all referencing images to ensure
         # deletion of the respective filedb entries.
         for image in self.images:
@@ -230,13 +230,13 @@ class Image(EventsModel):
 
     @classmethod
     def add(cls, event, data, metadata, account):
-        """Adds the respective image data to the article."""
-        article_image = cls()
-        article_image.event = event
-        article_image.account = account
-        article_image.data = data
-        article_image.source = metadata['source']
-        return article_image
+        """Adds the respective image data to the event."""
+        event_image = cls()
+        event_image.event = event
+        event_image.account = account
+        event_image.data = data
+        event_image.source = metadata['source']
+        return event_image
 
     @property
     def oneliner(self):
@@ -315,7 +315,7 @@ class Tag(EventsModel):
 
     @classmethod
     def add(cls, event, tag, validate=True):
-        """Adds a new tag to the article."""
+        """Adds a new tag to the event."""
         if validate:
             try:
                 TagList.get(TagList.tag == tag)
@@ -361,7 +361,7 @@ class EventCustomer(EventsModel):
 
     @classmethod
     def add(cls, event, customer):
-        """Adds the respective customer to the article."""
+        """Adds the respective customer to the event."""
         try:
             CustomerList.get(CustomerList.customer == customer)
         except CustomerList.DoesNotExist:
@@ -377,7 +377,7 @@ class EventCustomer(EventsModel):
             return event_customer
 
     def to_dict(self):
-        """Returns a JSON-ish representation of the article customer."""
+        """Returns a JSON-ish representation of the event customer."""
         return {'id': self.id, 'customer': self.customer.id}
 
 
@@ -446,21 +446,21 @@ class SubEventProxy(EventProxy):
 
 
 class EventImageProxy(EventProxy):
-    """Proxies images of articles."""
+    """Proxies images of events."""
 
     def __init__(self, target):
         """Sets the model and target."""
         super().__init__(Image, target)
 
     def add(self, data, metadata, account):
-        """Adds an image to the respective article."""
-        article_image = self.model.add(self.target, data, metadata, account)
-        article_image.save()
-        return article_image
+        """Adds an image to the respective event."""
+        event_image = self.model.add(self.target, data, metadata, account)
+        event_image.save()
+        return event_image
 
 
-class ArticleTagProxy(EventProxy):
-    """Proxies tags of articles."""
+class EventTagProxy(EventProxy):
+    """Proxies tags of events."""
 
     def __init__(self, target):
         """Sets the model and target."""
@@ -476,12 +476,12 @@ class ArticleTagProxy(EventProxy):
             selection = self.model.id == ident
 
         try:
-            article_tag = self.model.get(
-                (self.model.article == self.target) & selection)
+            event_tag = self.model.get(
+                (self.model.event == self.target) & selection)
         except self.model.DoesNotExist:
             return False
 
-        return article_tag.delete_instance()
+        return event_tag.delete_instance()
 
 
 class EventCustomerProxy(EventProxy):
@@ -504,15 +504,15 @@ class EventCustomerProxy(EventProxy):
         return not customers
 
     def delete(self, customer):
-        """Deletes the respective customer from the article."""
+        """Deletes the respective customer from the event."""
         try:
-            article_customer = self.model.get(
-                (self.model.article == self.target)
+            event_customer = self.model.get(
+                (self.model.event == self.target)
                 & (self.model.customer == customer))
         except self.model.DoesNotExist:
             return False
 
-        return article_customer.delete_instance()
+        return event_customer.delete_instance()
 
 
 MODELS = [
