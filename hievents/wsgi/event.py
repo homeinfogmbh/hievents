@@ -1,11 +1,10 @@
 """Endpoint functions for event management."""
 
 from hinews.exceptions import InvalidCustomer, InvalidTag
-from hinews.messages.customer import NoSuchCustomer, CustomerAdded, \
-    CustomerDeleted
+from hinews.messages.customer import NoSuchCustomer, CustomerAdded
 from hinews.messages.image import NoImageProvided, NoMetaDataProvided, \
     ImageAdded
-from hinews.messages.tag import NoSuchTag, TagAdded, TagDeleted
+from hinews.messages.tag import NoSuchTag, TagAdded
 from his import ACCOUNT, DATA, authenticated, authorized
 from his.messages import MissingData, InvalidData
 from peeweeplus import FieldValueError, FieldNotNullable
@@ -13,7 +12,8 @@ from wsgilib import JSON
 
 from hievents.messages.event import NoSuchEvent, EventCreated, EventDeleted,\
     EventPatched
-from hievents.orm import Event, Image, CustomerList, EventCustomer, Tag
+from hievents.messages.sub_event import SubEventCreated
+from hievents.orm import Event, Image, EventCustomer, Tag, SubEvent
 
 __all__ = ['_get_event', 'ROUTES']
 
@@ -33,30 +33,10 @@ def _get_images(event):
     return Image.select().where(Image.event == event)
 
 
-def _get_customer(cid):
-    """Returns the respective customer."""
-
-    try:
-        return CustomerList.get(CustomerList.customer == cid).customer
-    except CustomerList.DoesNotExist:
-        raise NoSuchCustomer()
-
-
 def _get_event_customers(event):
     """Yields the event's customers."""
 
     return EventCustomer.select().where(EventCustomer.event == event)
-
-
-def _get_event_customer(event, customer):
-    """Returns the respective event customer."""
-
-    try:
-        return EventCustomer.get(
-            (EventCustomer.event == event)
-            & (EventCustomer.customer == customer))
-    except EventCustomer.DoesNotExist:
-        raise NoSuchCustomer()
 
 
 def _get_tags(event):
@@ -65,13 +45,10 @@ def _get_tags(event):
     return Tag.select().where(Tag.event == event)
 
 
-def _get_tag(event, tag):
-    """Returns the respective tag record."""
+def _get_sub_events(event):
+    """Yields the event's sub events."""
 
-    try:
-        return Tag.get((Tag.event == event) & (Tag.tag == tag))
-    except Tag.DoesNotExist:
-        raise NoSuchTag()
+    return SubEvent.select().where(SubEvent.event == event)
 
 
 @authenticated
@@ -193,16 +170,6 @@ def post_customer(ident):
 
 @authenticated
 @authorized('hievents')
-def delete_customer(event_id, customer_id):
-    """Deletes the respective customer from the event."""
-
-    _get_event_customer(
-        _get_event(event_id), _get_customer(customer_id)).delete_instance()
-    return CustomerDeleted()
-
-
-@authenticated
-@authorized('hievents')
 def list_tags(ident):
     """Lists tags of the respective event."""
 
@@ -227,11 +194,22 @@ def post_tag(ident):
 
 @authenticated
 @authorized('hievents')
-def delete_tag(event_id, tag):
-    """Deletes the respective tag."""
+def list_sub_events(ident):
+    """Adds a tag to the respective event."""
 
-    _get_tag(_get_event(event_id), tag).delete_instance()
-    return TagDeleted()
+    return JSON([sub_event.to_dict() for sub_event in _get_sub_events(
+        _get_event(ident))])
+
+
+@authenticated
+@authorized('hievents')
+def post_sub_event(ident):
+    """Adds a tag to the respective event."""
+
+    event = _get_event(ident)
+    sub_event = SubEvent.from_dict(event, DATA.json)
+    sub_event.save()
+    return SubEventCreated()
 
 
 ROUTES = (
@@ -247,12 +225,11 @@ ROUTES = (
     # Event customers.
     ('GET', '/event/<int:ident>/customers', list_customers,
      'list_event_customers'),
-    ('POST', '/event/<int:ident>/customers', post_customer,
-     'post_event_customer'),
-    ('DELETE', '/event/<int:event_id>/customers/<customer_id>',
-     delete_customer, 'delete_event_customer'),
     # Tags.
     ('GET', '/event/<int:ident>/tags', list_tags, 'list_event_tags'),
     ('POST', '/event/<int:ident>/tags', post_tag, 'post_event_tag'),
-    ('DELETE', '/event/<int:event_id>/tags/<tag>', delete_tag,
-     'delete_event_tag'))
+    # Sub-events.
+    ('GET', '/event/<int:ident>/sub_event', list_sub_events,
+     'list_sub_events'),
+    ('POST', '/event/<int:ident>/sub_event', post_sub_event,
+     'post_sub_event'))
