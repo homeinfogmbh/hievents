@@ -46,4 +46,5 @@ def delete(ident):
 
 ROUTES = (
     ('GET', '/tags', list_, 'list_tags'),
-    ('GET', '/tags/<int:ident>', delete, 'list_tags'))
+    ('GET', '/tags/<int:ident>', get, 'get_tag'),
+    ('GET', '/tags/<int:ident>', delete, 'delete_tag'))

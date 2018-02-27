@@ -143,13 +143,12 @@ class Event(EventsModel):
         dictionary.update({
             'author': self.author.info,
             'address': self.address.to_dict(),
-            'editors': [editor.to_dict() for editor in self.editors],
-            'images': [image.to_dict() for image in self.images],
-            'tags': [tag.to_dict() for tag in self.tags],
-            'customers': [customer.to_dict() for customer in self.customers],
-            'sub_events': [
-                sub_event.to_dict() for sub_event in self.sub_events],
-            'prices': [price.to_dict() for price in self.prices]})
+            'editors': [editor.id for editor in self.editors],
+            'images': [image.id for image in self.images],
+            'tags': [tag.id for tag in self.tags],
+            'customers': [customer.id for customer in self.customers],
+            'sub_events': [sub_event.id for sub_event in self.sub_events],
+            'prices': [price.id for price in self.prices]})
         return dictionary
 
     def delete_instance(self, recursive=False, delete_nullable=False):

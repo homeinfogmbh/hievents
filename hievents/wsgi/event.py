@@ -13,7 +13,7 @@ from wsgilib import JSON
 from hievents.messages.event import NoSuchEvent, EventCreated, EventDeleted,\
     EventPatched
 from hievents.messages.sub_event import SubEventCreated
-from hievents.orm import Event, Image, EventCustomer, Tag, SubEvent
+from hievents.orm import Event, Editor, Image, EventCustomer, Tag, SubEvent
 
 __all__ = ['_get_event', 'ROUTES']
 
@@ -102,7 +102,8 @@ def patch(ident):
     event = _get_event(ident)
     event.patch(DATA.json)
     event.save()
-    event.editors.add(ACCOUNT)
+    editor = Editor.add(event, ACCOUNT)
+    editor.save()
     return EventPatched()
 
 
@@ -131,14 +132,16 @@ def post_image(ident):
     except KeyError:
         raise NoMetaDataProvided()
 
+    event = _get_event(ident)
+
     try:
-        image = _get_event(ident).images.add(
-            image.bytes, metadata.json, ACCOUNT)
+        image = Image.add(event, image.bytes, metadata.json, ACCOUNT)
     except KeyError as key_error:
         raise MissingData(key=key_error.args[0])
     except ValueError as value_error:
         raise InvalidData(hint=value_error.args[0])
 
+    image.save()
     return ImageAdded(id=image.id)
 
 
