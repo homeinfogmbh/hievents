@@ -63,4 +63,5 @@ def patch(ident):
 ROUTES = (
     ('GET', '/customer', list_, 'list_customers'),
     ('GET', '/customer/<int:ident>', get, 'get_customer'),
-    ('DELETE', '/customer/<int:ident>', delete, 'delete_customer'),)
+    ('DELETE', '/customer/<int:ident>', delete, 'delete_customer'),
+    ('DELETE', '/customer/<int:ident>', patch, 'patch_customer'))

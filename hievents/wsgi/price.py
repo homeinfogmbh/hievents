@@ -1,65 +1,57 @@
 """Price endpoints."""
 
+from his import DATA
 from wsgilib import JSON
 
-from hievents.messages.price import NoSuchPrice, PriceCreated, PriceDeleted, \
-    PricePatched
-from hievents.wsgi.event import get_event
+from hievents.messages.price import NoSuchPrice, PriceDeleted, PricePatched
+from hievents.wsgi.orm import Price
 
 __all__ = ['ROUTES']
 
 
-def get_price(event, ident):
+def list_():
+    """Lists prices of the respective event."""
+
+    return JSON([price.to_dict() for price in Price])
+
+
+def get(ident):
     """Returns the respective price."""
 
     try:
-        return Price.get((price.event == event) & (price.id == ident))
+        price = Price.get(Price.id == ident)
     except Price.DoesNotExist:
         raise NoSuchPrice()
 
-
-def list_(ident):
-    """Lists prices of the respective event."""
-
-    return JSON([price.to_dict() for price in get_event(ident).prices])
+    return JSON(price.to_dict())
 
 
-def get(event_id, price_id):
-    """Returns the respective price."""
-
-    return JSON(get_price(get_event(event_id), price_id).to_dict())
-
-
-def post(ident):
-    """Adds a price to the respective event."""
-
-    event = get_event(ident)
-    price = Price.from_dict(event, DATA.json)
-    price.save()
-    return PriceCreated(id=price.id)
-
-
-def delete(event_id, price_id):
+def delete(ident):
     """Deletes a price."""
 
-    get_price(get_event(event_id), price_id).delete_instance()
+    try:
+        price = Price.get(Price.id == ident)
+    except Price.DoesNotExist:
+        raise NoSuchPrice()
+
+    price.delete_instance()
     return PriceDeleted()
 
 
-def patch(event_id, price_id):
+def patch(ident):
     """Modiefies a price."""
 
-    price = get_price(get_event(event_id), price_id)
+    try:
+        price = Price.get(Price.id == ident)
+    except Price.DoesNotExist:
+        raise NoSuchPrice()
+
     price.patch(DATA.json)
-    price.save()
-    return PricePatched()
+    return PriceDeleted()
 
 
 ROUTES = (
-    ('GET', '/event/<int:ident>/price', list_, 'list_prices'),
-    ('GET', '/event/<int:event_id>/price/<int:price_id>', get, 'get_price'),
-    ('POST', '/event/<int:ident>/price', post, 'add_sub_events'),
-    ('DELETE', '/event/<int:event_id>/price/<int:price_id>', delete,
-     'delete_price'),
-    ('PATCH', '/event/<int:event_id>/price/<int:price_id>', patch,
-     'patch_price'))
+    ('GET', '/price/<int:ident>/price', list_, 'list_prices'),
+    ('GET', '/price/<int:ident>', get, 'get_price'),
+    ('DELETE', '/price/<int:ident>', delete, 'delete_price'),
+    ('PATCH', '/price/<int:ident>', patch, 'patch_price'))
