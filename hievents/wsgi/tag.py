@@ -1,10 +1,11 @@
 """Tag handlers."""
 
+from hinews.exceptions import InvalidTag
 from hinews.messages.tag import NoSuchTag, TagAdded, TagDeleted
 from his import DATA, authenticated, authorized
 from wsgilib import JSON
 
-from hievents.orm import InvalidTag, TagList
+from hievents.orm import TagList
 from hievents.wsgi.event import get_event
 
 __all__ = ['ROUTES']

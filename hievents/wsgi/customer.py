@@ -1,12 +1,13 @@
 """Event customer controller."""
 
+from hinews.exceptions import InvalidCustomer
 from hinews.messages.customer import NoSuchCustomer, CustomerAdded, \
     CustomerDeleted
 from his import DATA, authenticated, authorized
 from homeinfo.crm import Customer
 from wsgilib import JSON
 
-from hievents.orm import InvalidCustomer, CustomerList
+from hievents.orm import CustomerList
 from hievents.wsgi.event import get_event
 
 __all__ = ['ROUTES']

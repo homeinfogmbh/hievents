@@ -8,7 +8,7 @@ from hinews.messages.public import MissingAccessToken, InvalidAccessToken
 from wsgilib import JSON, XML, Binary
 
 from hievents.messages.event import NoSuchEvent
-from hievents.orm import event_active, Event, EventImage, AccessToken
+from hievents.orm import event_active, Event, Image, AccessToken
 
 __all__ = ['ROUTES']
 
@@ -61,8 +61,8 @@ def _get_image(ident):
     """Returns the respective image."""
 
     try:
-        event_image = EventImage.get(EventImage.id == ident)
-    except EventImage.DoesNotExist:
+        event_image = Image.get(Image.id == ident)
+    except Image.DoesNotExist:
         raise NoSuchImage()
 
     if _get_customer() in event_image.event.customers:

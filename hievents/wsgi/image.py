@@ -6,7 +6,7 @@ from his import ACCOUNT, DATA, authenticated, authorized
 from his.messages import MissingData, InvalidData
 from wsgilib import Binary, JSON
 
-from hievents.orm import EventImage
+from hievents.orm import Image
 from hievents.wsgi.event import get_event
 
 __all__ = ['ROUTES']
@@ -16,8 +16,8 @@ def get_image(ident):
     """Returns the respective image."""
 
     try:
-        return EventImage.get(EventImage.id == ident)
-    except EventImage.DoesNotExist:
+        return Image.get(Image.id == ident)
+    except Image.DoesNotExist:
         raise NoSuchImage()
 
 
@@ -26,7 +26,7 @@ def get_image(ident):
 def list_():
     """Lists all available images."""
 
-    return JSON([image.to_dict() for image in EventImage])
+    return JSON([image.to_dict() for image in Image])
 
 
 @authenticated

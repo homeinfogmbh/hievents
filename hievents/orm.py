@@ -22,13 +22,13 @@ from hievents.config import CONFIG
 __all__ = [
     'create_tables',
     'Event',
-    'EventEditor',
-    'EventImage',
+    'Editor',
+    'Image',
     'TagList',
     'CustomerList',
-    'EventTag',
+    'Tag',
     'SubEvent',
-    'EventPrice',
+    'Price',
     'EventCustomer',
     'AccessToken',
     'MODELS']
@@ -186,7 +186,7 @@ class Event(EventsModel):
             recursive=recursive, delete_nullable=delete_nullable)
 
 
-class EventEditor(EventsModel):
+class Editor(EventsModel):
     """An event's editor."""
 
     class Meta:
@@ -213,7 +213,7 @@ class EventEditor(EventsModel):
         return dictionary
 
 
-class EventImage(EventsModel):
+class Image(EventsModel):
     """An image of an event."""
 
     class Meta:
@@ -303,7 +303,7 @@ class CustomerList(EventsModel):
         return self.customer.to_dict(cascade=True)
 
 
-class EventTag(EventsModel):
+class Tag(EventsModel):
     """Tags for events."""
 
     class Meta:
@@ -339,7 +339,7 @@ class SubEvent(EventsModel):
     caption = CharField(255, null=True)
 
 
-class EventPrice(EventsModel):
+class Price(EventsModel):
     """Price of an event."""
 
     event = ForeignKeyField(Event, column_name='event', on_delete='CASCADE')
@@ -418,7 +418,7 @@ class EventEditorProxy(EventProxy):
 
     def __init__(self, target):
         """Sets model and target."""
-        super().__init__(EventEditor, target)
+        super().__init__(Editor, target)
 
     def add(self, author):
         """Adds the respective author."""
@@ -432,7 +432,7 @@ class EventImageProxy(EventProxy):
 
     def __init__(self, target):
         """Sets the model and target."""
-        super().__init__(EventImage, target)
+        super().__init__(Image, target)
 
     def add(self, data, metadata, account):
         """Adds an image to the respective article."""
@@ -456,7 +456,7 @@ class ArticleTagProxy(EventProxy):
 
     def __init__(self, target):
         """Sets the model and target."""
-        super().__init__(EventTag, target)
+        super().__init__(Tag, target)
 
     def add(self, tag):
         """Adds the respective tag."""
@@ -520,5 +520,5 @@ class EventCustomerProxy(EventProxy):
 
 
 MODELS = [
-    Event, EventEditor, EventImage, TagList, CustomerList, EventTag,
-    EventCustomer, AccessToken]
+    Event, Editor, Image, TagList, CustomerList, Tag, SubEvent,
+    Price, EventCustomer, AccessToken]
