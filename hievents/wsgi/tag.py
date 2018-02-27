@@ -1,17 +1,17 @@
 """Tag handlers."""
 
+from hinews.messages.tag import NoSuchTag, TagAdded, TagDeleted
 from his import DATA, authenticated, authorized
 from wsgilib import JSON
 
-from hinews.messages.tag import NoSuchTag, TagAdded, TagDeleted
-from hinews.orm import InvalidTag, TagList
-from hinews.wsgi.article import get_article
+from hievents.orm import InvalidTag, TagList
+from hievents.wsgi.event import get_event
 
 __all__ = ['ROUTES']
 
 
 @authenticated
-@authorized('hinews')
+@authorized('hievents')
 def list_():
     """Lists available tags."""
 
@@ -19,20 +19,20 @@ def list_():
 
 
 @authenticated
-@authorized('hinews')
+@authorized('hievents')
 def get(ident):
-    """Lists tags of the respective article."""
+    """Lists tags of the respective event."""
 
-    return JSON([tag.to_dict() for tag in get_article(ident).tags])
+    return JSON([tag.to_dict() for tag in get_event(ident).tags])
 
 
 @authenticated
-@authorized('hinews')
+@authorized('hievents')
 def post(ident):
-    """Adds a tag to the respective article."""
+    """Adds a tag to the respective event."""
 
     try:
-        get_article(ident).tags.add(DATA.text)
+        get_event(ident).tags.add(DATA.text)
     except InvalidTag:
         return NoSuchTag()
 
@@ -40,16 +40,16 @@ def post(ident):
 
 
 @authenticated
-@authorized('hinews')
-def delete(article_id, tag_or_id):
+@authorized('hievents')
+def delete(event_id, tag_or_id):
     """Deletes the respective tag."""
 
-    get_article(article_id).tags.delete(tag_or_id)
+    get_event(event_id).tags.delete(tag_or_id)
     return TagDeleted()
 
 
 ROUTES = (
     ('GET', '/tags', list_, 'list_tags'),
-    ('GET', '/article/<int:ident>/tags', get, 'get_tags'),
-    ('POST', '/article/<int:ident>/tags', post, 'post_tag'),
-    ('DELETE', '/article/<int:article_id>/tags/<tag>', delete, 'delete_tag'))
+    ('GET', '/event/<int:ident>/tags', get, 'get_tags'),
+    ('POST', '/event/<int:ident>/tags', post, 'post_tag'),
+    ('DELETE', '/event/<int:event_id>/tags/<tag>', delete, 'delete_tag'))

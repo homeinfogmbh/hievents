@@ -3,13 +3,12 @@ HIS authentication or authorization.
 """
 from flask import request
 
-from wsgilib import JSON, XML, Binary
-
-from hinews import dom
-from hinews.messages.article import NoSuchArticle
 from hinews.messages.image import NoSuchImage
 from hinews.messages.public import MissingAccessToken, InvalidAccessToken
-from hinews.orm import article_active, Article, ArticleImage, AccessToken
+from wsgilib import JSON, XML, Binary
+
+from hievents.messages.event import NoSuchEvent
+from hievents.orm import event_active, Event, EventImage, AccessToken
 
 __all__ = ['ROUTES']
 
@@ -30,67 +29,59 @@ def _get_customer():
     return access_token.customer
 
 
-def _active_articles():
-    """Yields active articles."""
+def _active_events():
+    """Yields active events."""
 
-    return Article.select().where(article_active())
-
-
-def _get_articles(customer):
-    """Yields articles of the querying customer."""
-
-    for article in _active_articles():
-        if customer in article.customers:
-            yield article
+    return Event.select().where(event_active())
 
 
-def _get_article(ident):
-    """Yields articles of the querying customer."""
+def _get_events(customer):
+    """Yields events of the querying customer."""
+
+    for event in _active_events():
+        if customer in event.customers:
+            yield event
+
+
+def _get_event(ident):
+    """Returns the respective event of the querying customer."""
 
     try:
-        article = Article.get(article_active() & (Article.id == ident))
-    except Article.DoesNotExist:
-        raise NoSuchArticle()
+        event = Event.get(event_active() & (Event.id == ident))
+    except Event.DoesNotExist:
+        raise NoSuchEvent()
 
-    if _get_customer() in article.customers:
-        return article
+    if _get_customer() in event.customers:
+        return event
 
-    raise NoSuchArticle()
+    raise NoSuchEvent()
 
 
 def _get_image(ident):
     """Returns the respective image."""
 
     try:
-        article_image = ArticleImage.get(ArticleImage.id == ident)
-    except ArticleImage.DoesNotExist:
+        event_image = EventImage.get(EventImage.id == ident)
+    except EventImage.DoesNotExist:
         raise NoSuchImage()
 
-    if _get_customer() in article_image.article.customers:
-        return article_image
+    if _get_customer() in event_image.event.customers:
+        return event_image
 
-    raise NoSuchArticle()
+    raise NoSuchEvent()
 
 
 def list_():
-    """Lists the respective news."""
+    """Lists the respective events."""
 
-    try:
-        request.args['xml']
-    except KeyError:
-        return JSON([article.to_dict() for article in _get_articles(
-            _get_customer())])
-
-    news = dom.news()
-    news.article = [article.to_dom() for article in _get_articles(
-        _get_customer())]
-    return XML(news)
+    return JSON([event.to_dict() for event in _get_events(
+        _get_customer())])
 
 
-def get_article(ident):
-    """Returns the respective article."""
+def get_event(ident):
+    """Returns the respective event."""
 
-    return JSON(_get_article(ident).to_dict())
+    return JSON(_get_event(ident).to_dict())
 
 
 def get_image(ident):
@@ -103,6 +94,6 @@ def get_image(ident):
 
 
 ROUTES = (
-    ('GET', '/pub/article', list_, 'list_customer_articles'),
-    ('GET', '/pub/article/<int:ident>', get_article, 'get_customer_article'),
+    ('GET', '/pub/event', list_, 'list_customer_events'),
+    ('GET', '/pub/event/<int:ident>', get_event, 'get_customer_event'),
     ('GET', '/pub/image/<int:ident>', get_image, 'get_customer_image'))

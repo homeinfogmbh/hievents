@@ -60,6 +60,21 @@ class Currency(Enum):
 
     EUR = '€'
     USD = '$'
+    CHF = 'Fr.'
+    DKK = 'kr.'
+
+    def format(self, value):
+        """Formats the respective currency value."""
+        if self == Currency.EUR:
+            return '{} {}'.format(value, self.value)
+        elif self == Currency.USD:
+            return '{} {}'.format(self.value, value)
+        elif self == Currency.CHF:
+            return '{} {}'.format(self.value, value)
+        elif self == Currency.DKK:
+            return '{} {}'.format(value, self.value)
+
+        raise NotImplementedError('Cannot format {}.'.format(self.value))
 
 
 class EventsModel(JSONModel):

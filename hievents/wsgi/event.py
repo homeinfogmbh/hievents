@@ -1,31 +1,32 @@
 """Endpoint functions for event management."""
 
+from hinews.Exceptions import InvalidElements
 from his import ACCOUNT, DATA, authenticated, authorized
 from his.messages import MissingData, InvalidData
 from peeweeplus import FieldValueError, FieldNotNullable
 from wsgilib import JSON
 
-from hinews.messages.article import NoSuchArticle, ArticleCreated, \
-    ArticleDeleted, ArticlePatched
-from hinews.orm import InvalidElements, Article
+from hievents.messages.event import NoSuchEvent, EventCreated, EventDeleted,\
+    EventPatched
+from hievents.orm import Event
 
-__all__ = ['get_article', 'ROUTES']
-
-
-def get_article(ident):
-    """Returns the respective article."""
-
-    try:
-        return Article.get(Article.id == ident)
-    except Article.DoesNotExist:
-        raise NoSuchArticle()
+__all__ = ['get_event', 'ROUTES']
 
 
-def set_tags(article, dictionary):
-    """Sets the respective tags of the article iff specified."""
+def get_event(ident):
+    """Returns the respective event."""
 
     try:
-        article.tags = dictionary['tags']
+        return Event.get(Event.id == ident)
+    except Event.DoesNotExist:
+        raise NoSuchEvent()
+
+
+def set_tags(event, dictionary):
+    """Sets the respective tags of the event iff specified."""
+
+    try:
+        event.tags = dictionary['tags']
     except KeyError:
         return []
     except InvalidElements as invalid_elements:
@@ -34,11 +35,11 @@ def set_tags(article, dictionary):
     return []
 
 
-def set_customers(article, dictionary):
-    """Sets the respective customers of the article iff specified."""
+def set_customers(event, dictionary):
+    """Sets the respective customers of the event iff specified."""
 
     try:
-        article.customers = dictionary['customers']
+        event.customers = dictionary['customers']
     except KeyError:
         return []
     except InvalidElements as invalid_elements:
@@ -48,73 +49,73 @@ def set_customers(article, dictionary):
 
 
 @authenticated
-@authorized('hinews')
+@authorized('hievents')
 def list_():
-    """Lists all available articles."""
+    """Lists all available events."""
 
-    return JSON([article.to_dict() for article in Article])
+    return JSON([event.to_dict() for event in Event])
 
 
 @authenticated
-@authorized('hinews')
+@authorized('hievents')
 def get(ident):
-    """Returns a specific article."""
+    """Returns a specific event."""
 
-    return JSON(get_article(ident).to_dict())
+    return JSON(get_event(ident).to_dict())
 
 
 @authenticated
-@authorized('hinews')
+@authorized('hievents')
 def post():
-    """Adds a new article."""
+    """Adds a new event."""
 
     dictionary = DATA.json
 
     try:
-        article = Article.from_dict(
+        event = Event.from_dict(
             ACCOUNT, dictionary, allow=('tags', 'customers'))
     except FieldNotNullable as field_not_nullable:
         raise MissingData(**field_not_nullable.to_dict())
     except FieldValueError as field_value_error:
         raise InvalidData(**field_value_error.to_dict())
 
-    article.save()
-    invalid_tags = set_tags(article, dictionary)
-    invalid_customers = set_customers(article, dictionary)
+    event.save()
+    invalid_tags = set_tags(event, dictionary)
+    invalid_customers = set_customers(event, dictionary)
 
-    return ArticleCreated(
-        id=article.id, invalid_tags=invalid_tags,
+    return EventCreated(
+        id=event.id, invalid_tags=invalid_tags,
         invalid_customers=invalid_customers)
 
 
 @authenticated
-@authorized('hinews')
+@authorized('hievents')
 def delete(ident):
-    """Adds a new article."""
+    """Adds a new event."""
 
-    get_article(ident).delete_instance()
-    return ArticleDeleted()
+    get_event(ident).delete_instance()
+    return EventDeleted()
 
 
 @authenticated
-@authorized('hinews')
+@authorized('hievents')
 def patch(ident):
-    """Adds a new article."""
+    """Adds a new event."""
 
-    article = get_article(ident)
+    event = get_event(ident)
     dictionary = DATA.json
-    article.patch(dictionary, allow=('tags', 'customers'))
-    article.save()
-    article.editors.add(ACCOUNT)
-    invalid_tags = set_tags(article, dictionary)
-    invalid_customers = set_customers(article, dictionary)
-    return ArticlePatched(
+    event.patch(dictionary, allow=('tags', 'customers'))
+    event.save()
+    event.editors.add(ACCOUNT)
+    invalid_tags = set_tags(event, dictionary)
+    invalid_customers = set_customers(event, dictionary)
+    return EventPatched(
         invalid_tags=invalid_tags, invalid_customers=invalid_customers)
 
 
 ROUTES = (
-    ('GET', '/article', list_, 'list_articles'),
-    ('GET', '/article/<int:ident>', get, 'get_article'),
-    ('POST', '/article', post, 'post_article'),
-    ('DELETE', '/article/<int:ident>', delete, 'delete_article'),
-    ('PATCH', '/article/<int:ident>', patch, 'patch_article'))
+    ('GET', '/event', list_, 'list_events'),
+    ('GET', '/event/<int:ident>', get, 'get_event'),
+    ('POST', '/event', post, 'post_event'),
+    ('DELETE', '/event/<int:ident>', delete, 'delete_event'),
+    ('PATCH', '/event/<int:ident>', patch, 'patch_event'))

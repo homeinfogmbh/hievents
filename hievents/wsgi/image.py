@@ -1,13 +1,13 @@
-"""Article image handlers."""
+"""Event image handlers."""
 
+from hinews.messages.image import NoSuchImage, NoImageProvided, \
+    NoMetaDataProvided, ImageAdded, ImageDeleted, ImagePatched
 from his import ACCOUNT, DATA, authenticated, authorized
 from his.messages import MissingData, InvalidData
 from wsgilib import Binary, JSON
 
-from hinews.messages.image import NoSuchImage, NoImageProvided, \
-    NoMetaDataProvided, ImageAdded, ImageDeleted, ImagePatched
-from hinews.orm import ArticleImage
-from hinews.wsgi.article import get_article
+from hievents.orm import EventImage
+from hievents.wsgi.event import get_event
 
 __all__ = ['ROUTES']
 
@@ -16,39 +16,39 @@ def get_image(ident):
     """Returns the respective image."""
 
     try:
-        return ArticleImage.get(ArticleImage.id == ident)
-    except ArticleImage.DoesNotExist:
+        return EventImage.get(EventImage.id == ident)
+    except EventImage.DoesNotExist:
         raise NoSuchImage()
 
 
 @authenticated
-@authorized('hinews')
+@authorized('hievents')
 def list_():
-    """Lists all available articles."""
+    """Lists all available images."""
 
-    return JSON([image.to_dict() for image in ArticleImage])
-
-
-@authenticated
-@authorized('hinews')
-def list_article_images(ident):
-    """Lists all available articles."""
-
-    return JSON([image.to_dict() for image in get_article(ident).images])
+    return JSON([image.to_dict() for image in EventImage])
 
 
 @authenticated
-@authorized('hinews')
+@authorized('hievents')
+def list_event_images(ident):
+    """Lists all images of the respective event."""
+
+    return JSON([image.to_dict() for image in get_event(ident).images])
+
+
+@authenticated
+@authorized('hievents')
 def get(ident):
-    """Returns a specific article."""
+    """Returns a specific image."""
 
     return Binary(get_image(ident).data)
 
 
 @authenticated
-@authorized('hinews')
+@authorized('hievents')
 def post(ident):
-    """Adds a new article."""
+    """Adds a new image to the respective event."""
 
     files = DATA.files
 
@@ -63,7 +63,7 @@ def post(ident):
         raise NoMetaDataProvided()
 
     try:
-        image = get_article(ident).images.add(
+        image = get_event(ident).images.add(
             image.bytes, metadata.json, ACCOUNT)
     except KeyError as key_error:
         raise MissingData(key=key_error.args[0])
@@ -74,18 +74,18 @@ def post(ident):
 
 
 @authenticated
-@authorized('hinews')
+@authorized('hievents')
 def delete(ident):
-    """Adds a new article."""
+    """Deletes the respective image."""
 
     get_image(ident).delete_instance()
     return ImageDeleted()
 
 
 @authenticated
-@authorized('hinews')
+@authorized('hievents')
 def patch(ident):
-    """Adds a new article."""
+    """Modifies image meta data."""
 
     image = get_image(ident)
     image.patch(DATA.json)
@@ -94,9 +94,9 @@ def patch(ident):
 
 
 ROUTES = (
-    ('GET', '/article/<int:ident>/images', list_article_images,
-     'list_article_images'),
-    ('POST', '/article/<int:ident>/images', post, 'post_article_image'),
+    ('GET', '/event/<int:ident>/images', list_event_images,
+     'list_event_images'),
+    ('POST', '/event/<int:ident>/images', post, 'post_event_image'),
     ('GET', '/image', list_, 'list_images'),
     ('GET', '/image/<int:ident>', get, 'get_image'),
     ('DELETE', '/image/<int:ident>', delete, 'delete_image'),
