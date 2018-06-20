@@ -12,5 +12,4 @@ setup(
     maintainer_email='<r dot neumann at homeinfo period de>',
     requires=['his'],
     packages=['hievents', 'hievents.messages', 'hievents.wsgi'],
-    data_files=[('/etc/his.d/locale', ['files/hievents.ini'])],
     description='HOMEINFO events API.')

@@ -8,5 +8,4 @@ __all__ = ['EventsMessage']
 class EventsMessage(Message):
     """A JSON-ish response."""
 
-    LOCALES = locales('/etc/his.d/locale/hievents.ini')
-    ABSTRACT = True
+    DOMAIN = 'hievents'

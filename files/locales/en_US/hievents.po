@@ -1,0 +1,53 @@
+# Translations template for HIEvents.
+# Copyright (C) 2018 HOMEINFO Digitale Informationssysteme GmbH.
+# This file is distributed under the same license as the HIEvents project.
+# Richard Neumann <r.neumann@homeinfo.de>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: latest\n"
+"Report-Msgid-Bugs-To: info@homeinfo.de\n"
+"POT-Creation-Date: 2018-06-20 11:58+0100\n"
+"PO-Revision-Date: 2018-06-20 11:58+0100\n"
+"Last-Translator: Richard Neumann <r.neumann@homeinfo.de>\n"
+"Language-Team: English <info@homeinfo.de>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Hand\n"
+
+msgid "NoSuchEvent"
+msgstr "No such event."
+
+msgid "EventCreated"
+msgstr "Event created."
+
+msgid "EventDeleted"
+msgstr "Event deleted."
+
+msgid "EventPatched"
+msgstr "Event patched."
+
+msgid "NoSuchSubEvent"
+msgstr "No such sub-event."
+
+msgid "SubEventCreated"
+msgstr "Sub-event created."
+
+msgid "SubEventDeleted"
+msgstr "Sub-event deleted."
+
+msgid "SubEventPatched"
+msgstr "Sub-event patched."
+
+msgid "NoSuchPrice"
+msgstr "No such price."
+
+msgid "PriceCreated"
+msgstr "Price created."
+
+msgid "PriceDeleted"
+msgstr "Price deleted."
+
+msgid "PricePatched"
+msgstr "Price patched."
