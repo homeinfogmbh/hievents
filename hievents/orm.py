@@ -13,7 +13,7 @@ from functoolsplus import datetimenow
 from hinews.exceptions import InvalidCustomer, InvalidTag
 from hinews.watermark import watermark
 from his.orm import Account
-from homeinfo.crm import Address, Customer
+from mdb import Address, Customer
 from peeweeplus import MySQLDatabase, JSONModel, EnumField
 
 from hievents.config import CONFIG
