@@ -1,6 +1,6 @@
 """Endpoint functions for event management."""
 
-from json import load
+from json import loads
 
 from flask import request
 
@@ -138,7 +138,9 @@ def post_image(ident):
         image = stream.read()
 
     with metadata.stream as stream:
-        metadata = load(stream)
+        metadata = stream.read()
+
+    metadata = loads(metadata.decode())
 
     try:
         image = Image.add(event, image, metadata, ACCOUNT)
