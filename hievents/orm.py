@@ -355,7 +355,7 @@ class CustomerList(EventsModel):
 
     def to_dict(self):
         """Returns the respective customer's dict."""
-        return self.customer.to_dict(cascade=True)
+        return self.customer.to_dict(company=True)
 
 
 class TagList(EventsModel):
