@@ -1,6 +1,7 @@
 """Sub-event handler."""
 
-from his import DATA
+from flask import request
+
 from wsgilib import JSON
 
 from hievents.messages.sub_event import NoSuchSubEvent, SubEventDeleted, \
@@ -56,7 +57,7 @@ def patch(ident):
     except SubEvent.DoesNotExist:
         raise NoSuchSubEvent()
 
-    sub_event.patch(DATA.json)
+    sub_event.patch(request.json)
     sub_event.save()
     return SubEventPatched()
 

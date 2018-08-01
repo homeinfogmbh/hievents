@@ -1,6 +1,7 @@
 """Price endpoints."""
 
-from his import DATA
+from flask import request
+
 from wsgilib import JSON
 
 from hievents.messages.price import NoSuchPrice, PriceDeleted, PricePatched
@@ -46,8 +47,8 @@ def patch(ident):
     except Price.DoesNotExist:
         raise NoSuchPrice()
 
-    price.patch(DATA.json)
-    return PriceDeleted()
+    price.patch(request.json)
+    return PricePatched()
 
 
 ROUTES = (

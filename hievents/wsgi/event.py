@@ -1,11 +1,15 @@
 """Endpoint functions for event management."""
 
+from json import load
+
+from flask import request
+
 from hinews.exceptions import InvalidCustomer, InvalidTag
 from hinews.messages.customer import NoSuchCustomer, CustomerAdded
 from hinews.messages.image import NoImageProvided, NoMetaDataProvided, \
     ImageAdded
 from hinews.messages.tag import NoSuchTag, TagAdded
-from his import ACCOUNT, DATA, authenticated, authorized
+from his import ACCOUNT, authenticated, authorized
 from his.messages import MissingData, InvalidData
 from peeweeplus import FieldValueError, FieldNotNullable
 from wsgilib import JSON
@@ -72,10 +76,8 @@ def get(ident):
 def post():
     """Adds a new event."""
 
-    dictionary = DATA.json
-
     try:
-        event = Event.from_dict(ACCOUNT, dictionary)
+        event = Event.from_dict(ACCOUNT, request.json)
     except FieldNotNullable as field_not_nullable:
         raise MissingData(**field_not_nullable.to_dict())
     except FieldValueError as field_value_error:
@@ -100,7 +102,7 @@ def patch(ident):
     """Adds a new event."""
 
     event = _get_event(ident)
-    event.patch(DATA.json)
+    event.patch(request.json)
     event.save()
     editor = Editor.add(event, ACCOUNT)
     editor.save()
@@ -120,22 +122,26 @@ def list_images(ident):
 def post_image(ident):
     """Adds a new image to the respective event."""
 
-    files = DATA.files
-
     try:
-        image = files['image']
+        image = request.files['image']
     except KeyError:
         raise NoImageProvided()
 
     try:
-        metadata = files['metadata']
+        metadata = request.files['metadata']
     except KeyError:
         raise NoMetaDataProvided()
 
     event = _get_event(ident)
 
+    with image.stream as stream:
+        image = stream.read()
+
+    with metadata.stream as stream:
+        metadata = load(stream)
+
     try:
-        image = Image.add(event, image.bytes, metadata.json, ACCOUNT)
+        image = Image.add(event, image, metadata, ACCOUNT)
     except KeyError as key_error:
         raise MissingData(key=key_error.args[0])
     except ValueError as value_error:
@@ -163,7 +169,7 @@ def post_customer(ident):
     event = _get_event(ident)
 
     try:
-        customer = EventCustomer.from_dict(event, DATA.json)
+        customer = EventCustomer.from_dict(event, request.json)
     except InvalidCustomer:
         raise NoSuchCustomer()
 
@@ -187,7 +193,7 @@ def post_tag(ident):
     event = _get_event(ident)
 
     try:
-        tag = Tag.from_text(event, DATA.text)
+        tag = Tag.from_text(event, request.data.decode())
     except InvalidTag:
         return NoSuchTag()
 
@@ -210,7 +216,7 @@ def post_sub_event(ident):
     """Adds a tag to the respective event."""
 
     event = _get_event(ident)
-    sub_event = SubEvent.from_dict(event, DATA.json)
+    sub_event = SubEvent.from_dict(event, request.json)
     sub_event.save()
     return SubEventCreated()
 

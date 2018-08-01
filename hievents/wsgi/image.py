@@ -1,8 +1,9 @@
 """Event image handlers."""
 
-from hinews.messages.image import NoSuchImage, \
-    ImageDeleted, ImagePatched
-from his import DATA, authenticated, authorized
+from flask import request
+
+from hinews.messages.image import NoSuchImage, ImageDeleted, ImagePatched
+from his import authenticated, authorized
 from wsgilib import Binary, JSON
 
 from hievents.orm import Image
@@ -50,7 +51,7 @@ def patch(ident):
     """Modifies image meta data."""
 
     image = get_image(ident)
-    image.patch(DATA.json)
+    image.patch(request.json)
     image.save()
     return ImagePatched()
 
