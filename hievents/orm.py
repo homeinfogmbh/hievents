@@ -5,8 +5,8 @@ from datetime import datetime
 from enum import Enum
 from uuid import uuid4
 
-from peewee import PrimaryKeyField, ForeignKeyField, DateField, TimeField, \
-    DateTimeField, CharField, TextField, IntegerField, DecimalField
+from peewee import AutoField, ForeignKeyField, DateField, DateTimeField, \
+    CharField, TextField, IntegerField, DecimalField, UUIDField
 
 from filedb import mimetype, FileProperty
 from functoolsplus import datetimenow
@@ -14,7 +14,7 @@ from hinews.exceptions import InvalidCustomer, InvalidTag
 from hinews.watermark import watermark
 from his.orm import Account
 from mdb import Address, Customer
-from peeweeplus import MySQLDatabase, JSONModel, EnumField
+from peeweeplus import MySQLDatabase, JSONModel, JSONField, EnumField
 
 from hievents.config import CONFIG
 
@@ -64,11 +64,14 @@ class Currency(Enum):
         """Formats the respective currency value."""
         if self == Currency.EUR:
             return '{} {}'.format(value, self.value)
-        elif self == Currency.USD:
+
+        if self == Currency.USD:
             return '{} {}'.format(self.value, value)
-        elif self == Currency.CHF:
+
+        if self == Currency.CHF:
             return '{} {}'.format(self.value, value)
-        elif self == Currency.DKK:
+
+        if self == Currency.DKK:
             return '{} {}'.format(value, self.value)
 
         raise NotImplementedError('Cannot format {}.'.format(self.value))
@@ -82,21 +85,20 @@ class EventsModel(JSONModel):
         database = DATABASE
         schema = database.database
 
-    id = PrimaryKeyField()
+    id = JSONField(AutoField)
 
 
 class Event(EventsModel):
     """An event."""
 
-    author = ForeignKeyField(Account, column_name='author')
-    created = DateTimeField(default=datetime.now)
-    title = CharField(255)
-    subtitle = CharField(255, null=True)
-    address = ForeignKeyField(Address, column_name='address')
-    begin_date = DateField()
-    begin_time = TimeField(null=True)
-    end = DateField(null=True)
-    active_until = DateField(null=True)
+    author = JSONField(ForeignKeyField, Account, column_name='author')
+    created = JSONField(DateTimeField, default=datetime.now)
+    title = JSONField(CharField, 255)
+    subtitle = JSONField(CharField, 255, null=True)
+    address = JSONField(ForeignKeyField, Address, column_name='address')
+    begin = JSONField(DateField)
+    end = JSONField(DateField, null=True)
+    active_until = JSONField(DateField, null=True, key='activeUntil')
 
     @classmethod
     def from_dict(cls, author, dictionary, **kwargs):
@@ -167,10 +169,11 @@ class Editor(EventsModel):
         """Sets the table name."""
         table_name = 'event_editor'
 
-    event = ForeignKeyField(Event, column_name='event', on_delete='CASCADE')
-    account = ForeignKeyField(
-        Account, column_name='account', on_delete='CASCADE')
-    timestamp = DateTimeField(default=datetime.now)
+    event = JSONField(
+        ForeignKeyField, Event, column_name='event', on_delete='CASCADE')
+    account = JSONField(
+        ForeignKeyField, Account, column_name='account', on_delete='CASCADE')
+    timestamp = JSONField(DateTimeField, default=datetime.now)
 
     @classmethod
     def add(cls, event, account):
@@ -194,12 +197,13 @@ class Image(EventsModel):
         """Sets the table name."""
         table_name = 'image'
 
-    event = ForeignKeyField(Event, column_name='event', on_delete='CASCADE')
-    account = ForeignKeyField(
-        Account, column_name='account', on_delete='CASCADE')
+    event = JSONField(
+        ForeignKeyField, Event, column_name='event', on_delete='CASCADE')
+    account = JSONField(
+        ForeignKeyField, Account, column_name='account', on_delete='CASCADE')
     _file = IntegerField(column_name='file')
-    uploaded = DateTimeField(default=datetime.now)
-    source = TextField(null=True)
+    uploaded = JSONField(DateTimeField, default=datetime.now)
+    source = JSONField(TextField, null=True)
     data = FileProperty(_file)
 
     @classmethod
@@ -248,8 +252,9 @@ class Tag(EventsModel):
         """Sets the table name."""
         table_name = 'event_tag'
 
-    event = ForeignKeyField(Event, column_name='event', on_delete='CASCADE')
-    tag = CharField(255)
+    event = JSONField(
+        ForeignKeyField, Event, column_name='event', on_delete='CASCADE')
+    tag = JSONField(CharField, 255)
 
     @classmethod
     def from_text(cls, event, tag, validate=True):
@@ -276,9 +281,10 @@ class SubEvent(EventsModel):
         """Set table name."""
         table_name = 'sub_event'
 
-    event = ForeignKeyField(Event, column_name='event', on_delete='CASCADE')
-    timestamp = DateTimeField()
-    caption = CharField(255, null=True)
+    event = JSONField(
+        ForeignKeyField, Event, column_name='event', on_delete='CASCADE')
+    timestamp = JSONField(DateTimeField)
+    caption = JSONField(CharField, 255, null=True)
 
     @classmethod
     def add(cls, event, timestamp, caption=None):
@@ -293,10 +299,11 @@ class SubEvent(EventsModel):
 class Price(EventsModel):
     """Price of an event."""
 
-    event = ForeignKeyField(Event, column_name='event', on_delete='CASCADE')
-    value = DecimalField(6, 2)
-    currency = EnumField(Currency, default=Currency.EUR)
-    caption = CharField(255, null=True)
+    event = JSONField(
+        ForeignKeyField, Event, column_name='event', on_delete='CASCADE')
+    value = JSONField(DecimalField, 6, 2)
+    currency = JSONField(EnumField, Currency, default=Currency.EUR)
+    caption = JSONField(CharField, 255, null=True)
 
     @classmethod
     def add(cls, event, value, currency=Currency.EUR, caption=None):
@@ -316,9 +323,10 @@ class EventCustomer(EventsModel):
         """Sets the table name."""
         table_name = 'event_customer'
 
-    event = ForeignKeyField(Event, column_name='event', on_delete='CASCADE')
-    customer = ForeignKeyField(
-        Customer, column_name='customer', on_delete='CASCADE')
+    event = JSONField(
+        ForeignKeyField, Event, column_name='event', on_delete='CASCADE')
+    customer = JSONField(
+        ForeignKeyField, Customer, column_name='customer', on_delete='CASCADE')
 
     @classmethod
     def add(cls, event, customer):
@@ -349,8 +357,8 @@ class CustomerList(EventsModel):
         """Sets the table name."""
         table_name = 'customer_list'
 
-    customer = ForeignKeyField(
-        Customer, column_name='customer', on_delete='CASCADE',
+    customer = JSONField(
+        ForeignKeyField, Customer, column_name='customer', on_delete='CASCADE',
         on_update='CASCADE')
 
     def to_dict(self):
@@ -365,7 +373,7 @@ class TagList(EventsModel):
         """Sets the table name."""
         table_name = 'tag_list'
 
-    tag = CharField(255)
+    tag = JSONField(CharField, 255)
 
     @classmethod
     def add(cls, tag):
@@ -385,10 +393,10 @@ class AccessToken(EventsModel):
         """Sets the table name."""
         table_name = 'access_token'
 
-    customer = ForeignKeyField(
-        Customer, column_name='customer', on_delete='CASCADE',
+    customer = JSONField(
+        ForeignKeyField, Customer, column_name='customer', on_delete='CASCADE',
         on_update='CASCADE')
-    token = CharField(36)   # UUID4
+    token = JSONField(UUIDField, default=uuid4)
 
     @classmethod
     def add(cls, customer):
@@ -398,7 +406,6 @@ class AccessToken(EventsModel):
         except cls.DoesNotExist:
             access_token = cls()
             access_token.customer = customer
-            access_token.token = str(uuid4())
             return access_token
 
 
