@@ -27,7 +27,7 @@ def get(ident):
     except Tag.DoesNotExist:
         raise NoSuchTag()
 
-    return JSON(tag.to_dict())
+    return JSON(tag.to_json())
 
 
 @authenticated

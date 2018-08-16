@@ -13,7 +13,7 @@ __all__ = ['ROUTES']
 def list_():
     """Lists prices of the respective event."""
 
-    return JSON([price.to_dict() for price in Price])
+    return JSON([price.to_json() for price in Price])
 
 
 def get(ident):
@@ -24,7 +24,7 @@ def get(ident):
     except Price.DoesNotExist:
         raise NoSuchPrice()
 
-    return JSON(price.to_dict())
+    return JSON(price.to_json())
 
 
 def delete(ident):
@@ -47,7 +47,7 @@ def patch(ident):
     except Price.DoesNotExist:
         raise NoSuchPrice()
 
-    price.patch(request.json)
+    price.patch_json(request.json)
     return PricePatched()
 
 

@@ -60,7 +60,7 @@ def _get_sub_events(event):
 def list_():
     """Lists all available events."""
 
-    return JSON([event.to_dict() for event in Event])
+    return JSON([event.to_json() for event in Event])
 
 
 @authenticated
@@ -68,7 +68,7 @@ def list_():
 def get(ident):
     """Returns a specific event."""
 
-    return JSON(_get_event(ident).to_dict())
+    return JSON(_get_event(ident).to_json())
 
 
 @authenticated
@@ -77,11 +77,11 @@ def post():
     """Adds a new event."""
 
     try:
-        event = Event.from_dict(ACCOUNT, request.json)
+        event = Event.from_json(ACCOUNT, request.json)
     except FieldNotNullable as field_not_nullable:
-        raise MissingData(**field_not_nullable.to_dict())
+        raise MissingData(**field_not_nullable.to_json())
     except FieldValueError as field_value_error:
-        raise InvalidData(**field_value_error.to_dict())
+        raise InvalidData(**field_value_error.to_json())
 
     event.save()
     return EventCreated(id=event.id)
@@ -102,7 +102,7 @@ def patch(ident):
     """Adds a new event."""
 
     event = _get_event(ident)
-    event.patch(request.json)
+    event.patch_json(request.json)
     event.save()
     editor = Editor.add(event, ACCOUNT)
     editor.save()
@@ -114,7 +114,7 @@ def patch(ident):
 def list_images(ident):
     """Lists all images of the respective event."""
 
-    return JSON([image.to_dict() for image in _get_images(_get_event(ident))])
+    return JSON([image.to_json() for image in _get_images(_get_event(ident))])
 
 
 @authenticated
@@ -159,7 +159,7 @@ def list_customers(ident):
     """Lists customers of the respective event."""
 
     return JSON([
-        event_customer.to_dict() for event_customer in _get_event_customers(
+        event_customer.to_json() for event_customer in _get_event_customers(
             _get_event(ident))])
 
 
@@ -171,7 +171,7 @@ def post_customer(ident):
     event = _get_event(ident)
 
     try:
-        customer = EventCustomer.from_dict(event, request.json)
+        customer = EventCustomer.from_json(event, request.json)
     except InvalidCustomer:
         raise NoSuchCustomer()
 
@@ -184,7 +184,7 @@ def post_customer(ident):
 def list_tags(ident):
     """Lists tags of the respective event."""
 
-    return JSON([tag.to_dict() for tag in _get_tags(_get_event(ident))])
+    return JSON([tag.to_json() for tag in _get_tags(_get_event(ident))])
 
 
 @authenticated
@@ -208,7 +208,7 @@ def post_tag(ident):
 def list_sub_events(ident):
     """Adds a tag to the respective event."""
 
-    return JSON([sub_event.to_dict() for sub_event in _get_sub_events(
+    return JSON([sub_event.to_json() for sub_event in _get_sub_events(
         _get_event(ident))])
 
 
@@ -218,7 +218,7 @@ def post_sub_event(ident):
     """Adds a tag to the respective event."""
 
     event = _get_event(ident)
-    sub_event = SubEvent.from_dict(event, request.json)
+    sub_event = SubEvent.from_json(event, request.json)
     sub_event.save()
     return SubEventCreated()
 

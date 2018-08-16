@@ -23,7 +23,7 @@ def get_sub_event(event, ident):
 def list_():
     """List sub events of a certain event."""
 
-    return JSON([sub_event.to_dict() for sub_event in SubEvent])
+    return JSON([sub_event.to_json() for sub_event in SubEvent])
 
 
 def get(ident):
@@ -34,7 +34,7 @@ def get(ident):
     except SubEvent.DoesNotExist:
         raise NoSuchSubEvent()
 
-    return JSON(sub_event.to_dict())
+    return JSON(sub_event.to_json())
 
 
 def delete(ident):
@@ -57,7 +57,7 @@ def patch(ident):
     except SubEvent.DoesNotExist:
         raise NoSuchSubEvent()
 
-    sub_event.patch(request.json)
+    sub_event.patch_json(request.json)
     sub_event.save()
     return SubEventPatched()
 

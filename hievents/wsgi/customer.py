@@ -14,7 +14,7 @@ __all__ = ['ROUTES']
 def list_():
     """Lists available customers."""
 
-    return JSON([customer.to_dict() for customer in CustomerList])
+    return JSON([customer.to_json() for customer in CustomerList])
 
 
 @authenticated
@@ -27,7 +27,7 @@ def get(ident):
     except EventCustomer.DoesNotExist:
         return NoSuchCustomer()
 
-    return JSON(event_customer.to_dict())
+    return JSON(event_customer.to_json())
 
 
 @authenticated

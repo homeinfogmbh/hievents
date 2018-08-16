@@ -1,6 +1,5 @@
 """ORM models."""
 
-from contextlib import suppress
 from datetime import datetime
 from enum import Enum
 from uuid import uuid4
@@ -9,7 +8,6 @@ from peewee import ForeignKeyField, DateField, DateTimeField, CharField, \
     TextField, IntegerField, DecimalField, UUIDField
 
 from filedb import mimetype, FileProperty
-from functoolsplus import datetimenow
 from hinews.exceptions import InvalidCustomer, InvalidTag
 from hinews.watermark import watermark
 from his.orm import Account
@@ -43,10 +41,10 @@ def create_tables(fail_silently=False):
         model.create_table(fail_silently=fail_silently)
 
 
-@datetimenow
-def event_active(now):
+def event_active():
     """Returns a peewee expression for active events."""
 
+    now = datetime.now()
     return (
         ((Event.active_from >> None) | (Event.active_from <= now))
         & ((Event.active_until >> None) | (Event.active_until >= now)))

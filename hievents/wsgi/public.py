@@ -74,14 +74,14 @@ def _get_image(ident):
 def list_():
     """Lists the respective events."""
 
-    return JSON([event.to_dict() for event in _get_events(
+    return JSON([event.to_json() for event in _get_events(
         _get_customer())])
 
 
 def get_event(ident):
     """Returns the respective event."""
 
-    return JSON(_get_event(ident).to_dict())
+    return JSON(_get_event(ident).to_json())
 
 
 def get_image(ident):
