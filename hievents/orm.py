@@ -95,7 +95,6 @@ class Event(EventsModel):
     begin = DateField()
     end = DateField(null=True)
     active_until = DateField(null=True)
-    JSON_KEYS = {'activeUntil': active_until}
 
     @classmethod
     def from_json(cls, author, dictionary, **kwargs):
