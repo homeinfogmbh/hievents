@@ -60,19 +60,15 @@ class Currency(Enum):
 
     def format(self, value):
         """Formats the respective currency value."""
-        if self == Currency.EUR:
-            return '{} {}'.format(value, self.value)
+        cls = type(self)
 
-        if self == Currency.USD:
-            return '{} {}'.format(self.value, value)
+        if self in {cls.EUR, cls.DKK}:  # Suffix notation.
+            return f'{value} {self.value}'
 
-        if self == Currency.CHF:
-            return '{} {}'.format(self.value, value)
+        if self in {cls.USD, cls.CHF}:  # Prefix notation.
+            return f'{self.value} {value}'
 
-        if self == Currency.DKK:
-            return '{} {}'.format(value, self.value)
-
-        raise NotImplementedError('Cannot format {}.'.format(self.value))
+        raise NotImplementedError(f'Cannot format {self.value}.')
 
 
 class EventsModel(JSONModel):
@@ -218,7 +214,7 @@ class Image(EventsModel):
     @property
     def watermarked(self):
         """Returns a watermarked image."""
-        return watermark(self.data, 'Quelle: {}'.format(self.oneliner))
+        return watermark(self.data, f'Quelle: {self.oneliner}')
 
     def patch_json(self, dictionary):
         """Patches the image metadata with the respective dictionary."""
