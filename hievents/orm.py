@@ -5,9 +5,9 @@ from enum import Enum
 from uuid import uuid4
 
 from peewee import ForeignKeyField, DateField, DateTimeField, CharField, \
-    TextField, IntegerField, DecimalField, UUIDField
+    TextField, DecimalField, UUIDField
 
-from filedb import mimetype, FileProperty
+from filedb import File
 from hinews.exceptions import InvalidCustomer, InvalidTag
 from hinews.watermark import watermark
 from his.orm import Account
@@ -191,18 +191,17 @@ class Image(EventsModel):
     event = ForeignKeyField(Event, column_name='event', on_delete='CASCADE')
     account = ForeignKeyField(
         Account, column_name='account', on_delete='CASCADE')
-    _file = IntegerField(column_name='file')
+    file = ForeignKeyField(File, column_name='file')
     uploaded = DateTimeField(default=datetime.now)
     source = TextField(null=True)
-    data = FileProperty(_file)
 
     @classmethod
-    def add(cls, event, data, metadata, account):
+    def add(cls, event, bytes_, metadata, account):
         """Adds the respective image data to the event."""
         event_image = cls()
         event_image.event = event
         event_image.account = account
-        event_image.data = data
+        event_image.file = File.from_bytes(bytes_)
         event_image.source = metadata['source']
         return event_image
 
@@ -214,7 +213,7 @@ class Image(EventsModel):
     @property
     def watermarked(self):
         """Returns a watermarked image."""
-        return watermark(self.data, f'Quelle: {self.oneliner}')
+        return watermark(self.file.bytes, f'Quelle: {self.oneliner}')
 
     def patch_json(self, dictionary):
         """Patches the image metadata with the respective dictionary."""
@@ -225,14 +224,8 @@ class Image(EventsModel):
         """Returns a JSON-compliant integer."""
         dictionary = super().to_json()
         dictionary['account'] = self.account.info
-        dictionary['mimetype'] = mimetype(self._file)
+        dictionary['mimetype'] = self.file.mimetype
         return dictionary
-
-    def delete_instance(self, recursive=False, delete_nullable=False):
-        """Deltes the image."""
-        self.data = None    # Delete file.
-        return super().delete_instance(
-            recursive=recursive, delete_nullable=delete_nullable)
 
 
 class Tag(EventsModel):
