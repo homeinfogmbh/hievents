@@ -4,8 +4,13 @@ from datetime import datetime
 from enum import Enum
 from uuid import uuid4
 
-from peewee import ForeignKeyField, DateField, DateTimeField, CharField, \
-    TextField, DecimalField, UUIDField
+from peewee import CharField
+from peewee import DateField
+from peewee import DateTimeField
+from peewee import DecimalField
+from peewee import ForeignKeyField
+from peewee import TextField
+from peewee import UUIDField
 
 from filedb import File
 from hinews.exceptions import InvalidCustomer, InvalidTag
