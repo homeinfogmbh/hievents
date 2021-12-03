@@ -17,9 +17,8 @@ from hinews.exceptions import InvalidCustomer, InvalidTag
 from hinews.watermark import watermark
 from his.orm import Account
 from mdb import Address, Customer
-from peeweeplus import MySQLDatabase, JSONModel, EnumField
+from peeweeplus import EnumField, JSONModel, MySQLDatabaseProxy
 
-from hievents.config import CONFIG
 
 __all__ = [
     'create_tables',
@@ -33,10 +32,11 @@ __all__ = [
     'Price',
     'EventCustomer',
     'AccessToken',
-    'MODELS']
+    'MODELS'
+]
 
 
-DATABASE = MySQLDatabase.from_config(CONFIG['db'])
+DATABASE = MySQLDatabaseProxy('hievents')
 
 
 def create_tables(fail_silently=False):
@@ -250,7 +250,7 @@ class Tag(EventsModel):
             try:
                 TagList.get(TagList.tag == tag)
             except TagList.DoesNotExist:
-                raise InvalidTag(tag)
+                raise InvalidTag(tag) from None
 
         try:
             return cls.get((cls.event == event) & (cls.tag == tag))
@@ -318,7 +318,7 @@ class EventCustomer(EventsModel):
         try:
             CustomerList.get(CustomerList.customer == customer)
         except CustomerList.DoesNotExist:
-            raise InvalidCustomer(customer)
+            raise InvalidCustomer(customer) from None
 
         try:
             return cls.get(
