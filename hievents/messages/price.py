@@ -2,11 +2,7 @@
 
 from hievents.messages.common import EventsMessage
 
-__all__ = [
-    'NoSuchPrice',
-    'PriceCreated',
-    'PriceDeleted',
-    'PricePatched']
+__all__ = ["NoSuchPrice", "PriceCreated", "PriceDeleted", "PricePatched"]
 
 
 class NoSuchPrice(EventsMessage):

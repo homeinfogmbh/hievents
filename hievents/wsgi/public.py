@@ -10,14 +10,14 @@ from wsgilib import JSON, Binary
 from hievents.messages.event import NoSuchEvent
 from hievents.orm import event_active, Event, Image, AccessToken
 
-__all__ = ['ROUTES']
+__all__ = ["ROUTES"]
 
 
 def _get_customer():
     """Returns the customer for the respective access token."""
 
     try:
-        access_token = request.args['access_token']
+        access_token = request.args["access_token"]
     except KeyError:
         raise MissingAccessToken()
 
@@ -74,8 +74,7 @@ def _get_image(ident):
 def list_():
     """Lists the respective events."""
 
-    return JSON([event.to_json() for event in _get_events(
-        _get_customer())])
+    return JSON([event.to_json() for event in _get_events(_get_customer())])
 
 
 def get_event(ident):
@@ -89,11 +88,12 @@ def get_image(ident):
 
     try:
         return Binary(_get_image(ident).watermarked)
-    except OSError:     # Not an image.
+    except OSError:  # Not an image.
         return Binary(_get_image(ident).data)
 
 
 ROUTES = (
-    ('GET', '/pub/event', list_, 'list_customer_events'),
-    ('GET', '/pub/event/<int:ident>', get_event, 'get_customer_event'),
-    ('GET', '/pub/image/<int:ident>', get_image, 'get_customer_image'))
+    ("GET", "/pub/event", list_, "list_customer_events"),
+    ("GET", "/pub/event/<int:ident>", get_event, "get_customer_event"),
+    ("GET", "/pub/image/<int:ident>", get_image, "get_customer_image"),
+)

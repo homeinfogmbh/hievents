@@ -6,20 +6,23 @@ from flask import request
 
 from hinews.exceptions import InvalidCustomer, InvalidTag
 from hinews.messages.customer import NoSuchCustomer, CustomerAdded
-from hinews.messages.image import NoImageProvided, NoMetaDataProvided, \
-    ImageAdded
+from hinews.messages.image import NoImageProvided, NoMetaDataProvided, ImageAdded
 from hinews.messages.tag import NoSuchTag, TagAdded
 from his import ACCOUNT, authenticated, authorized
 from his.messages import MissingData, InvalidData
 from peeweeplus import FieldValueError, FieldNotNullable
 from wsgilib import JSON
 
-from hievents.messages.event import NoSuchEvent, EventCreated, EventDeleted,\
-    EventPatched
+from hievents.messages.event import (
+    NoSuchEvent,
+    EventCreated,
+    EventDeleted,
+    EventPatched,
+)
 from hievents.messages.sub_event import SubEventCreated
 from hievents.orm import Event, Editor, Image, EventCustomer, Tag, SubEvent
 
-__all__ = ['_get_event', 'ROUTES']
+__all__ = ["_get_event", "ROUTES"]
 
 
 def _get_event(ident):
@@ -56,7 +59,7 @@ def _get_sub_events(event):
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def list_():
     """Lists all available events."""
 
@@ -64,7 +67,7 @@ def list_():
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def get(ident):
     """Returns a specific event."""
 
@@ -72,7 +75,7 @@ def get(ident):
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def post():
     """Adds a new event."""
 
@@ -88,7 +91,7 @@ def post():
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def delete(ident):
     """Adds a new event."""
 
@@ -97,7 +100,7 @@ def delete(ident):
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def patch(ident):
     """Adds a new event."""
 
@@ -110,7 +113,7 @@ def patch(ident):
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def list_images(ident):
     """Lists all images of the respective event."""
 
@@ -118,17 +121,17 @@ def list_images(ident):
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def post_image(ident):
     """Adds a new image to the respective event."""
 
     try:
-        image = request.files['image']
+        image = request.files["image"]
     except KeyError:
         raise NoImageProvided()
 
     try:
-        metadata = request.files['metadata']
+        metadata = request.files["metadata"]
     except KeyError:
         raise NoMetaDataProvided()
 
@@ -155,17 +158,20 @@ def post_image(ident):
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def list_customers(ident):
     """Lists customers of the respective event."""
 
-    return JSON([
-        event_customer.to_json() for event_customer in _get_event_customers(
-            _get_event(ident))])
+    return JSON(
+        [
+            event_customer.to_json()
+            for event_customer in _get_event_customers(_get_event(ident))
+        ]
+    )
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def post_customer(ident):
     """Adds a customer to the respective event."""
 
@@ -181,7 +187,7 @@ def post_customer(ident):
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def list_tags(ident):
     """Lists tags of the respective event."""
 
@@ -189,7 +195,7 @@ def list_tags(ident):
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def post_tag(ident):
     """Adds a tag to the respective event."""
 
@@ -205,16 +211,17 @@ def post_tag(ident):
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def list_sub_events(ident):
     """Adds a tag to the respective event."""
 
-    return JSON([sub_event.to_json() for sub_event in _get_sub_events(
-        _get_event(ident))])
+    return JSON(
+        [sub_event.to_json() for sub_event in _get_sub_events(_get_event(ident))]
+    )
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def post_sub_event(ident):
     """Adds a tag to the respective event."""
 
@@ -226,22 +233,20 @@ def post_sub_event(ident):
 
 ROUTES = (
     # Events.
-    ('GET', '/event', list_, 'list_events'),
-    ('GET', '/event/<int:ident>', get, '_get_event'),
-    ('POST', '/event', post, 'post_event'),
-    ('DELETE', '/event/<int:ident>', delete, 'delete_event'),
-    ('PATCH', '/event/<int:ident>', patch, 'patch_event'),
+    ("GET", "/event", list_, "list_events"),
+    ("GET", "/event/<int:ident>", get, "_get_event"),
+    ("POST", "/event", post, "post_event"),
+    ("DELETE", "/event/<int:ident>", delete, "delete_event"),
+    ("PATCH", "/event/<int:ident>", patch, "patch_event"),
     # Event images.
-    ('GET', '/event/<int:ident>/images', list_images, 'list_event_images'),
-    ('POST', '/event/<int:ident>/images', post_image, 'post_event_image'),
+    ("GET", "/event/<int:ident>/images", list_images, "list_event_images"),
+    ("POST", "/event/<int:ident>/images", post_image, "post_event_image"),
     # Event customers.
-    ('GET', '/event/<int:ident>/customers', list_customers,
-     'list_event_customers'),
+    ("GET", "/event/<int:ident>/customers", list_customers, "list_event_customers"),
     # Tags.
-    ('GET', '/event/<int:ident>/tags', list_tags, 'list_event_tags'),
-    ('POST', '/event/<int:ident>/tags', post_tag, 'post_event_tag'),
+    ("GET", "/event/<int:ident>/tags", list_tags, "list_event_tags"),
+    ("POST", "/event/<int:ident>/tags", post_tag, "post_event_tag"),
     # Sub-events.
-    ('GET', '/event/<int:ident>/sub_event', list_sub_events,
-     'list_event_sub_events'),
-    ('POST', '/event/<int:ident>/sub_event', post_sub_event,
-     'post_event_sub_event'))
+    ("GET", "/event/<int:ident>/sub_event", list_sub_events, "list_event_sub_events"),
+    ("POST", "/event/<int:ident>/sub_event", post_sub_event, "post_event_sub_event"),
+)

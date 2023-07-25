@@ -8,7 +8,7 @@ from wsgilib import Binary, JSON
 
 from hievents.orm import Image
 
-__all__ = ['ROUTES']
+__all__ = ["ROUTES"]
 
 
 def get_image(ident):
@@ -21,7 +21,7 @@ def get_image(ident):
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def list_all():
     """Lists all available images."""
 
@@ -29,7 +29,7 @@ def list_all():
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def get(ident):
     """Returns a specific image."""
 
@@ -37,7 +37,7 @@ def get(ident):
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def delete(ident):
     """Deletes the respective image."""
 
@@ -46,7 +46,7 @@ def delete(ident):
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def patch(ident):
     """Modifies image meta data."""
 
@@ -57,7 +57,8 @@ def patch(ident):
 
 
 ROUTES = (
-    ('GET', '/image', list_all, 'list_images'),
-    ('GET', '/image/<int:ident>', get, 'get_image'),
-    ('DELETE', '/image/<int:ident>', delete, 'delete_image'),
-    ('PATCH', '/image/<int:ident>', patch, 'patch_image'))
+    ("GET", "/image", list_all, "list_images"),
+    ("GET", "/image/<int:ident>", get, "get_image"),
+    ("DELETE", "/image/<int:ident>", delete, "delete_image"),
+    ("PATCH", "/image/<int:ident>", patch, "patch_image"),
+)

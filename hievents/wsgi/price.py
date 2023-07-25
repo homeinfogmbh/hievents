@@ -7,7 +7,7 @@ from wsgilib import JSON
 from hievents.messages.price import NoSuchPrice, PriceDeleted, PricePatched
 from hievents.orm import Price
 
-__all__ = ['ROUTES']
+__all__ = ["ROUTES"]
 
 
 def list_():
@@ -52,7 +52,8 @@ def patch(ident):
 
 
 ROUTES = (
-    ('GET', '/price/<int:ident>/price', list_, 'list_prices'),
-    ('GET', '/price/<int:ident>', get, 'get_price'),
-    ('DELETE', '/price/<int:ident>', delete, 'delete_price'),
-    ('PATCH', '/price/<int:ident>', patch, 'patch_price'))
+    ("GET", "/price/<int:ident>/price", list_, "list_prices"),
+    ("GET", "/price/<int:ident>", get, "get_price"),
+    ("DELETE", "/price/<int:ident>", delete, "delete_price"),
+    ("PATCH", "/price/<int:ident>", patch, "patch_price"),
+)

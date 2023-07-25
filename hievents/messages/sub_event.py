@@ -2,11 +2,7 @@
 
 from hievents.messages.common import EventsMessage
 
-__all__ = [
-    'NoSuchSubEvent',
-    'SubEventCreated',
-    'SubEventDeleted',
-    'SubEventPatched']
+__all__ = ["NoSuchSubEvent", "SubEventCreated", "SubEventDeleted", "SubEventPatched"]
 
 
 class NoSuchSubEvent(EventsMessage):

@@ -6,11 +6,11 @@ from wsgilib import JSON
 
 from hievents.orm import TagList, Tag
 
-__all__ = ['ROUTES']
+__all__ = ["ROUTES"]
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def list_():
     """Lists available tags."""
 
@@ -18,7 +18,7 @@ def list_():
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def get(ident):
     """Returns the respective tag."""
 
@@ -31,7 +31,7 @@ def get(ident):
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def delete(ident):
     """Deletes the respective tag."""
 
@@ -45,6 +45,7 @@ def delete(ident):
 
 
 ROUTES = (
-    ('GET', '/tags', list_, 'list_tags'),
-    ('GET', '/tags/<int:ident>', get, 'get_tag'),
-    ('GET', '/tags/<int:ident>', delete, 'delete_tag'))
+    ("GET", "/tags", list_, "list_tags"),
+    ("GET", "/tags/<int:ident>", get, "get_tag"),
+    ("GET", "/tags/<int:ident>", delete, "delete_tag"),
+)

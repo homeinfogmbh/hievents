@@ -4,11 +4,10 @@ from flask import request
 
 from wsgilib import JSON
 
-from hievents.messages.sub_event import NoSuchSubEvent, SubEventDeleted, \
-    SubEventPatched
+from hievents.messages.sub_event import NoSuchSubEvent, SubEventDeleted, SubEventPatched
 from hievents.orm import SubEvent
 
-__all__ = ['ROUTES']
+__all__ = ["ROUTES"]
 
 
 def get_sub_event(event, ident):
@@ -63,7 +62,8 @@ def patch(ident):
 
 
 ROUTES = (
-    ('GET', '/event', list_, 'list_sub_events'),
-    ('GET', '/event/<int:ident>', get, 'get_sub_event'),
-    ('DELETE', '/event/<int:ident>', delete, 'delete_sub_event'),
-    ('PATCH', '/event/<ident>', patch, 'patch_sub_event'))
+    ("GET", "/event", list_, "list_sub_events"),
+    ("GET", "/event/<int:ident>", get, "get_sub_event"),
+    ("DELETE", "/event/<int:ident>", delete, "delete_sub_event"),
+    ("PATCH", "/event/<ident>", patch, "patch_sub_event"),
+)

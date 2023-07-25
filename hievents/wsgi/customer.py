@@ -6,11 +6,11 @@ from wsgilib import JSON
 
 from hievents.orm import CustomerList, EventCustomer
 
-__all__ = ['ROUTES']
+__all__ = ["ROUTES"]
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def list_():
     """Lists available customers."""
 
@@ -18,7 +18,7 @@ def list_():
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def get(ident):
     """Returns the respective customer."""
 
@@ -31,7 +31,7 @@ def get(ident):
 
 
 @authenticated
-@authorized('hievents')
+@authorized("hievents")
 def delete(ident):
     """Deletes the respective customer."""
 
@@ -45,6 +45,7 @@ def delete(ident):
 
 
 ROUTES = (
-    ('GET', '/customer', list_, 'list_customers'),
-    ('GET', '/customer/<int:ident>', get, 'get_customer'),
-    ('DELETE', '/customer/<int:ident>', delete, 'delete_customer'))
+    ("GET", "/customer", list_, "list_customers"),
+    ("GET", "/customer/<int:ident>", get, "get_customer"),
+    ("DELETE", "/customer/<int:ident>", delete, "delete_customer"),
+)
